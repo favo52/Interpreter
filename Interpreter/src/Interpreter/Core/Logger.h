@@ -16,7 +16,7 @@ namespace Interpreter
 	};
 }
 
-// Gem log macros
+// Log macros
 #define LOG_TRACE(...)	  ::Interpreter::Logger::GetLogger()->trace(__VA_ARGS__);
 #define LOG_INFO(...)	  ::Interpreter::Logger::GetLogger()->info(__VA_ARGS__);
 #define LOG_WARN(...)	  ::Interpreter::Logger::GetLogger()->warn(__VA_ARGS__);

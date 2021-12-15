@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Interpreter/Interpreter.h"
+
 namespace Interpreter
 {
 	class Application
@@ -13,5 +15,7 @@ namespace Interpreter
 
 	private:
 		bool m_IsRunning;
+
+		Interpreter m_Interpreter;
 	};
 }

@@ -27,6 +27,9 @@
     <ClCompile Include="src\Interpreter\Core\Application.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Interpreter\Interpreter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Interpreter\Core\Logger.h">
@@ -36,6 +39,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Interpreter\Core\Application.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Interpreter\Interpreter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

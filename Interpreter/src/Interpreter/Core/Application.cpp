@@ -12,19 +12,20 @@ namespace Interpreter
 	{
 		while (m_IsRunning)
 		{
-			std::string msg{};
-			std::cout << ">";
-			std::getline(std::cin, msg);
+			std::string filepath{};
+			LOG_TRACE("Please enter the filepath to load.");
+			std::cout << "\n>";
+			std::getline(std::cin, filepath);
 
-			if (msg == "q" || msg == "Q")
+			if (filepath == "q" || filepath == "Q")
 				return;
 
-			LOG_TRACE(msg);
-			LOG_INFO(msg);
-			LOG_WARN(msg);
-			LOG_ERROR(msg);
-			LOG_CRITICAL(msg);
-			std::cout << "\n";
+			m_Interpreter.LoadFile(filepath);
+			std::cout << '\n';
+			m_Interpreter.ReadFile();
+			m_Interpreter.CloseFile();
+
+			Quit();
 		}
 	}
 }

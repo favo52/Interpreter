@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Interpreter\Interpreter.cpp" />
     <ClCompile Include="src\Interpreter\Core\Application.cpp" />
     <ClCompile Include="src\Interpreter\Core\Logger.cpp" />
     <ClCompile Include="src\Interpreter\Main.cpp" />
@@ -34,6 +35,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Interpreter\Interpreter.h" />
     <ClInclude Include="src\Interpreter\Core\Application.h" />
     <ClInclude Include="src\Interpreter\Core\Logger.h" />
     <ClInclude Include="src\pch.h" />
