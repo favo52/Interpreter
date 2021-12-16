@@ -50,7 +50,7 @@ namespace Interpreter
 		unsigned int m_LineNumber;
 
 		// User variables
-		std::vector<int> m_Integers;
+		std::unordered_map<std::string, int> m_IntegerMap;
 		std::vector<double> m_Reals;
 		std::vector<std::string> m_Strings;
 

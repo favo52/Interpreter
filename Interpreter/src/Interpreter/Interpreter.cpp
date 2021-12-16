@@ -97,16 +97,23 @@ namespace Interpreter
 		{
 			case VariableType::Integer:
 			{
-				if (isdigit(std::stoi(expression)))
+				std::size_t* position{ nullptr };
+				int value = std::stoi(expression, position);
+				if (position != nullptr)
 				{
+					auto inserted = m_IntegerMap.insert(std::make_pair(variable, value));
+					assert(inserted.second);
 
+					return true;
 				}
-				break;
+				else
+					return false;
 			}
 
 			case VariableType::Real:
 			{
-
+				double value = std::stod(expression);
+				//if (i)
 			}
 
 			case VariableType::String:
