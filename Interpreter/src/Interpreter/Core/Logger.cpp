@@ -11,7 +11,7 @@ namespace Interpreter
 	{
 		try
 		{
-			spdlog::set_pattern("%^[%r] %n: %v%$");
+			spdlog::set_pattern("%^%n: %v%$");
 
 			s_Logger = spdlog::stdout_color_mt("Interpreter");
 			s_Logger->set_level(spdlog::level::trace);

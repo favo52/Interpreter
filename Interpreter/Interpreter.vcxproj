@@ -35,6 +35,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Interpreter\Core\VariableHolder.h" />
     <ClInclude Include="src\Interpreter\Interpreter.h" />
     <ClInclude Include="src\Interpreter\Core\Application.h" />
     <ClInclude Include="src\Interpreter\Core\Logger.h" />

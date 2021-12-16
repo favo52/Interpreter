@@ -13,14 +13,15 @@ namespace Interpreter
 		while (m_IsRunning)
 		{
 			std::string filepath{};
+			std::cout << '\n';
 			LOG_TRACE("Please enter the filepath to load.");
-			std::cout << "\n>";
+			std::cout << ">";
 			std::getline(std::cin, filepath);
 
-			if (filepath == "q" || filepath == "Q")
-				return;
+			if (filepath.empty()) continue;
+			if (filepath == "q" || filepath == "Q") { LOG_INFO("Quitting..."); return; }
+			if (!m_Interpreter.LoadFile(filepath)) continue;
 
-			m_Interpreter.LoadFile(filepath);
 			std::cout << '\n';
 			m_Interpreter.ReadFile();
 			m_Interpreter.CloseFile();

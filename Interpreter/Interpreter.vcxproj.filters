@@ -44,5 +44,8 @@
     <ClInclude Include="src\Interpreter\Interpreter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Interpreter\Core\VariableHolder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

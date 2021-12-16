@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Core/VariableHolder.h"
+
 namespace Interpreter
 {
 	class Interpreter
@@ -9,7 +11,7 @@ namespace Interpreter
 		virtual ~Interpreter() = default;
 
 		// File management
-		void LoadFile(const std::string& filepath);
+		bool LoadFile(const std::string& filepath);
 		inline void CloseFile() { m_iFileStream.close(); }
 
 		void ReadFile();
@@ -50,11 +52,12 @@ namespace Interpreter
 		unsigned int m_LineNumber;
 
 		// User variables
-		std::unordered_map<std::string, int> m_IntegerMap;
-		std::vector<double> m_Reals;
-		std::vector<std::string> m_Strings;
+		IntegerHolder m_IntegerHolder;
+		RealHolder m_RealHolder;
+		StringHolder m_StringHolder;
 
 		// Keywords
 		std::unordered_map<std::string, Keyword> m_KeywordMap;
 	};
 }
+// resources/sampleLAO.txt
