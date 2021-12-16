@@ -64,8 +64,24 @@ namespace Interpreter
 				else if (IsKeyword(str))
 				{
 					// deal with keywords
-					LOG_ERROR("ERROR: Line {0}: {1}.\n\t\t\"{2}\" Keyword is not implemented yet.", m_LineNumber, m_Line, str);
-					return;
+
+					switch (GetKeyword(str))
+					{
+						case Keyword::Comment:
+						{
+							break;
+						}
+						case Keyword::If:
+						{
+							break;
+						}
+
+						default:
+						{
+							LOG_ERROR("ERROR: Line {0}: {1}.\n\t\t\"{2}\" Keyword is not implemented yet.", m_LineNumber, m_Line, str);
+							return;
+						}
+					}					
 				}
 				else
 				{
