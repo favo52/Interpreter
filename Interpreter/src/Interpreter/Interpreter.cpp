@@ -75,6 +75,22 @@ namespace Interpreter
 						{
 							break;
 						}
+						case Keyword::Then:
+						{
+							break;
+						}
+						case Keyword::Read:
+						{
+							break;
+						}
+						case Keyword::Print:
+						{
+							break;
+						}
+						case Keyword::End:
+						{
+							break;
+						}
 
 						default:
 						{
