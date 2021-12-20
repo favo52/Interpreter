@@ -3,9 +3,12 @@
 
 namespace Interpreter
 {
+	Application* Application::s_Instance{ nullptr };
+
 	Application::Application() :
 		m_IsRunning{ true }
 	{
+		s_Instance = this;
 	}
 
 	void Application::Run()

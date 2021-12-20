@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "Interpreter.h"
 
+#include "Core/Application.h"
+
 namespace Interpreter
 {
 	Interpreter::Interpreter() :
@@ -89,6 +91,9 @@ namespace Interpreter
 						}
 						case Keyword::End:
 						{
+							Application& app = Application::Get();
+							LOG_INFO("end. reached");
+							app.Quit();
 							break;
 						}
 
