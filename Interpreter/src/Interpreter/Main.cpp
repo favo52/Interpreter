@@ -13,6 +13,8 @@ try
 	App->Run();
 	delete App;
 
+	// This line wasn't here before
+
 	return 0;
 }
 catch (std::exception& e)
