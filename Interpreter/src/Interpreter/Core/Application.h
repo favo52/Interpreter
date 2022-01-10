@@ -11,7 +11,7 @@ namespace Interpreter
 		virtual ~Application() = default;
 
 		void Run();
-		inline void Quit() { m_IsRunning = false; }
+		void Quit() { m_IsRunning = false; }
 
 		static Application& Get() { return *s_Instance; }
 

@@ -8,6 +8,7 @@ namespace Interpreter
 	Application::Application() :
 		m_IsRunning{ true }
 	{
+		assert(!s_Instance);
 		s_Instance = this;
 	}
 

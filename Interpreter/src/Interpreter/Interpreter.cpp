@@ -37,7 +37,7 @@ namespace Interpreter
 		// Traverse the file line by line
 		while (std::getline(m_iFileStream, m_Line))
 		{
-			LOG_INFO("Line {0}: {1}", m_LineNumber, m_Line);
+			//LOG_INFO("Line {0}: {1}", m_LineNumber, m_Line);
 			std::istringstream iss{ m_Line };
 
 			// Traverse the line
@@ -66,8 +66,8 @@ namespace Interpreter
 				else if (IsKeyword(str))
 				{
 					// deal with keywords
-
-					switch (GetKeyword(str))
+					Keyword keyword = GetKeyword(str);
+					switch (keyword)
 					{
 						case Keyword::Comment:
 						{
@@ -87,6 +87,39 @@ namespace Interpreter
 						}
 						case Keyword::Print:
 						{
+							// Check if keyword is alone or has a following statement
+							std::string statement;
+							if (iss >> statement) // Has a statement
+							{
+								if (statement.front() == '\"')
+								{
+									statement.erase(statement.begin()); // delete first "
+									if (statement.back() == '\"')
+									{
+										statement.pop_back(); // delete ending "
+										LOG_INFO(statement);
+									}
+									else
+									{
+										LOG_ERROR("ERROR: Line {0}: {1}.", m_LineNumber, m_Line);
+										LOG_ERROR("Missing ending '\"'");
+									}
+								}
+								else if (IsVariableStored(statement)) // Print user variable
+								{
+									PrintUserVariable(statement);
+								}
+								else // Error
+								{
+									LOG_ERROR("ERROR: Line {0}: {1}.", m_LineNumber, m_Line);
+									LOG_ERROR("Print error.");
+								}
+							}
+							else // It's the keyword only
+							{
+								LOG_INFO("");
+							}
+
 							break;
 						}
 						case Keyword::End:
@@ -138,6 +171,29 @@ namespace Interpreter
 		else
 			return false;
 	}
+	
+	bool Interpreter::IsVariableStored(const std::string& statement)
+	{
+		switch (GetVariableType(statement))
+		{
+			case VariableType::Integer:
+				if (m_IntegerHolder.Find(statement))
+					return true;
+				break;
+
+			case VariableType::Real:
+				if (m_RealHolder.Find(statement))
+					return true;
+				break;
+
+			case VariableType::String:
+				if (m_StringHolder.Find(statement))
+					return true;
+				break;
+		}
+
+		return false;
+	}
 
 	bool Interpreter::MakeAssignment(const std::string& variable, const std::string& expression)
 	{
@@ -147,15 +203,19 @@ namespace Interpreter
 			{
 				// Validate integer expression
 				std::size_t* position{ nullptr };
-				int value = std::stoi(expression, position);
-				if (position != nullptr)
+				LOG_WARN(expression);
+				int value = std::stoi(expression);
+				LOG_WARN(value);
+				//if (position != nullptr)
+				if (std::isdigit(value) != 0)
 				{
 					m_IntegerHolder.InsertToMap(variable, value);
 					return true;
 				}
 				else // Invalid expression
 				{
-					LOG_ERROR("ERROR: Line {0}: {1} is not an ingeter number!", m_LineNumber, expression);
+					LOG_ERROR("ERROR: Line {0}: {1}.", m_LineNumber, m_Line);
+					LOG_ERROR("{0} is not an integer number!", expression);
 					return false;
 				}
 
@@ -216,6 +276,28 @@ namespace Interpreter
 			case VariableType::Invalid:
 			default:
 				return false;
+		}
+	}
+
+	void Interpreter::PrintUserVariable(const std::string& variable)
+	{
+		switch (GetVariableType(variable))
+		{
+			case VariableType::Integer:
+				LOG_INFO(m_IntegerHolder.GetValue(variable));
+				break;
+
+			case VariableType::Real:
+				LOG_INFO(m_RealHolder.GetValue(variable));
+				break;
+
+			case VariableType::String:
+				LOG_INFO(m_StringHolder.GetValue(variable));
+				break;
+
+			case VariableType::Invalid:
+				LOG_ERROR("Variable Invalid");
+				break;
 		}
 	}
 

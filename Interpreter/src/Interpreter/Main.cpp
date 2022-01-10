@@ -3,8 +3,6 @@
 #include "pch.h"
 #include "Core/Application.h"
 
-//Xaymarie
-
 int main()
 try
 {
@@ -14,8 +12,6 @@ try
 	Interpreter::Application* App = new Interpreter::Application();
 	App->Run();
 	delete App;
-
-	// This line wasn't here before
 
 	return 0;
 }

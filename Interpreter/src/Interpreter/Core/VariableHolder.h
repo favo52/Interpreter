@@ -10,6 +10,8 @@ namespace Interpreter
 	public:
 		void InsertToMap(Key key, Value value);
 
+		bool Find(const Key& key);
+
 		Value& GetValue(Key key);
 		const Value& GetValue(Key key) const;
 
@@ -23,6 +25,16 @@ namespace Interpreter
 		// Store user's variable and check success
 		auto inserted = m_VariableMap.insert(std::make_pair(key, value));
 		assert(inserted.second);
+	}
+
+	template<typename Key, typename Value>
+	inline bool VariableHolder<Key, Value>::Find(const Key& key)
+	{
+		auto x = m_VariableMap.find(key);
+		if (x != m_VariableMap.end())
+			return true;
+
+		return false;
 	}
 
 	template<typename Key, typename Value>

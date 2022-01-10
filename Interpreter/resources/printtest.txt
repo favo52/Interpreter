@@ -1,0 +1,9 @@
+c = 2
+w = "HOLA"
+print
+print c
+print w
+print " World"
+gReal = 2.5
+print gReal
+end.

@@ -12,7 +12,7 @@ namespace Interpreter
 
 		// File management
 		bool LoadFile(const std::string& filepath);
-		inline void CloseFile() { m_iFileStream.close(); }
+		void CloseFile() { m_iFileStream.close(); }
 
 		void ReadFile();
 
@@ -40,7 +40,11 @@ namespace Interpreter
 		bool IsVariable(const std::string& str);
 		bool IsKeyword(std::string statement);
 
+		bool IsVariableStored(const std::string& statement);
+
 		bool MakeAssignment(const std::string& variable, const std::string& expression);
+
+		void PrintUserVariable(const std::string& variable);
 
 		Keyword  GetKeyword(std::string statement);
 		VariableType GetVariableType(const std::string& statement);
