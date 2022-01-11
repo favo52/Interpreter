@@ -203,6 +203,8 @@ namespace Interpreter
 		{
 			std::cout << '\n';
 		}
+
+		return true;
 	}
 
 	bool Interpreter::IsVariable(const std::string& str)
