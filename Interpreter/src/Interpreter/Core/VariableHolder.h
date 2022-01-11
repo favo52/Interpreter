@@ -11,6 +11,7 @@ namespace Interpreter
 		void InsertToMap(Key key, Value value);
 
 		bool Find(const Key& key);
+		void Clear();
 
 		Value& GetValue(Key key);
 		const Value& GetValue(Key key) const;
@@ -35,6 +36,12 @@ namespace Interpreter
 			return true;
 
 		return false;
+	}
+
+	template<typename Key, typename Value>
+	inline void VariableHolder<Key, Value>::Clear()
+	{
+		m_VariableMap.clear();
 	}
 
 	template<typename Key, typename Value>

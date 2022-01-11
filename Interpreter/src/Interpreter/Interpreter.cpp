@@ -24,7 +24,7 @@ namespace Interpreter
 		m_iFileStream.open(filepath);
 		if (!m_iFileStream)
 		{
-			LOG_ERROR("Unable to open file \"{0}\"", filepath);
+			LOG_ERROR("Unable to open file \"{0}\".", filepath);
 			return false;
 		}
 
@@ -37,14 +37,14 @@ namespace Interpreter
 		// Traverse the file line by line
 		while (std::getline(m_iFileStream, m_Line))
 		{
-			//LOG_INFO("Line {0}: {1}", m_LineNumber, m_Line);
+			//LOG_WARN("Line {0}: {1}", m_LineNumber, m_Line);
 			std::istringstream iss{ m_Line };
 
-			// Traverse the line
-			for (std::string str; iss >> str;)
+			// Traverse the line word by word (whitespace-separated strings/chars)
+			for (std::string word; iss >> word;)
 			{
 				// Check for user defined variables
-				if (IsVariable(str) && !IsKeyword(str))
+				if (IsVariable(word) && !IsKeyword(word))
 				{
 					// Check if it's an assignment
 					std::string op; // operator
@@ -53,20 +53,22 @@ namespace Interpreter
 					{
 						std::string expression;
 						iss >> expression;
-						if (!MakeAssignment(str, expression)) return;
+						if (!MakeAssignment(word, expression)) return;
 						break;
 					}
 					else
 					{
 						// error, needs = to be assignment
-						LOG_ERROR("ERROR: Line {0}: {1}.", m_LineNumber, m_Line);
+						std::cout << '\n';
+						LOG_ERROR("ERROR: Line {0}: {1}", m_LineNumber, m_Line);
+						LOG_ERROR("Assignment operator ('=') not found.")
 						return;
 					}
 				}
-				else if (IsKeyword(str))
+				else if (IsKeyword(word))
 				{
 					// deal with keywords
-					Keyword keyword = GetKeyword(str);
+					Keyword keyword = GetKeyword(word);
 					switch (keyword)
 					{
 						case Keyword::Comment:
@@ -87,65 +89,119 @@ namespace Interpreter
 						}
 						case Keyword::Print:
 						{
-							// Check if keyword is alone or has a following statement
-							std::string statement;
-							if (iss >> statement) // Has a statement
-							{
-								if (statement.front() == '\"')
-								{
-									statement.erase(statement.begin()); // delete first "
-									if (statement.back() == '\"')
-									{
-										statement.pop_back(); // delete ending "
-										LOG_INFO(statement);
-									}
-									else
-									{
-										LOG_ERROR("ERROR: Line {0}: {1}.", m_LineNumber, m_Line);
-										LOG_ERROR("Missing ending '\"'");
-									}
-								}
-								else if (IsVariableStored(statement)) // Print user variable
-								{
-									PrintUserVariable(statement);
-								}
-								else // Error
-								{
-									LOG_ERROR("ERROR: Line {0}: {1}.", m_LineNumber, m_Line);
-									LOG_ERROR("Print error.");
-								}
-							}
-							else // It's the keyword only
-							{
-								LOG_INFO("");
-							}
+							if (!PrintKeyword(iss, word))
+								return;
 
 							break;
 						}
 						case Keyword::End:
 						{
 							Application& app = Application::Get();
-							LOG_INFO("end. reached");
-							app.Quit();
+							std::cout << '\n';
+							LOG_INFO("Program End");
+							//app.Quit();
 							break;
 						}
 
 						default:
 						{
-							LOG_ERROR("ERROR: Line {0}: {1}.\n\t\t\"{2}\" Keyword is not implemented yet.", m_LineNumber, m_Line, str);
+							std::cout << '\n';
+							LOG_ERROR("ERROR: Line {0}: {1}", m_LineNumber, m_Line);
+							LOG_ERROR("\t\t\"{0}\" Keyword is not implemented yet.", word);
 							return;
 						}
-					}					
+					}
+					break;
 				}
 				else
 				{
-					// not a variable or keyword, error?
-					LOG_ERROR("ERROR: Line {0}: {1}. Unknown.", m_LineNumber, m_Line);
+					// Not a variable or keyword, error
+					LOG_ERROR("ERROR: Line {0}: {1}", m_LineNumber, m_Line);
+					LOG_ERROR("Unrecognized statement. Not a user variable or keyword!");
 					return;
 				}
 			}
 
 			++m_LineNumber;
+		}
+	}
+
+	void Interpreter::Reset()
+	{
+		m_LineNumber = 1;
+		m_iFileStream.clear();
+		m_Line.clear();
+		m_IntegerHolder.Clear();
+		m_RealHolder.Clear();
+		m_StringHolder.Clear();
+	}
+
+	bool Interpreter::PrintKeyword(std::istringstream& iss, std::string& word)
+	{
+		// Check if keyword is alone or has a following statement
+		std::string statement;
+		if (iss >> statement) // Has a statement
+		{
+			// Deal with strings
+			if (statement.front() == '\"')
+			{
+				word = m_Line;
+				int found = word.find_first_of('"');
+				word.erase(0, found + 1);
+
+				if (word.back() == '\"')
+				{
+					word.pop_back(); // delete ending "
+					std::cout << word;
+				}
+				else
+				{
+					std::cout << '\n';
+					LOG_ERROR("ERROR: Line {0}: {1}", m_LineNumber, m_Line);
+					LOG_ERROR("String is missing ending quotation mark ('\"').");
+					return false;
+				}
+			}
+			else if (IsNumber(statement))
+			{	// Print numbers
+				std::cout << statement;
+			}
+			else // Deal with variables
+			{
+				if (IsVariableStored(statement)) // Print user variable
+				{
+					PrintUserVariable(statement);
+					return true;
+				}
+				else
+				{
+					std::cout << '\n';
+					LOG_ERROR("ERROR: Line {0}: {1}", m_LineNumber, m_Line);
+					if (statement.back() == '\"') {
+						LOG_ERROR("'{0}' is missing the opening quotation mark ('\"')!", statement);
+					}
+					else
+					{
+						if (!IsVariable(statement))
+						{
+							LOG_ERROR("'{0}' is an invalid variable name!", statement);
+							return false;
+						}
+						LOG_ERROR("'{0}' is not an initialized variable!", statement);
+					}
+					return false;
+				}
+
+				// All other errors
+				std::cout << '\n';
+				LOG_ERROR("ERROR: Line {0}: {1}", m_LineNumber, m_Line);
+				LOG_ERROR("Unknown Print error.");
+				return false;
+			}
+		}
+		else // Print a new line if it's the keyword only
+		{
+			std::cout << '\n';
 		}
 	}
 
@@ -170,6 +226,15 @@ namespace Interpreter
 			return true;
 		else
 			return false;
+	}
+
+	bool Interpreter::IsNumber(const std::string& statement)
+	{
+		for (const char& c : statement)
+			if (!isdigit(c))
+				return false;
+
+		return true;
 	}
 	
 	bool Interpreter::IsVariableStored(const std::string& statement)
@@ -201,43 +266,82 @@ namespace Interpreter
 		{
 			case VariableType::Integer:
 			{
+				for (const char& c : expression)
+					if (!std::isdigit(c))
+					{
+						std::cout << '\n';
+						LOG_ERROR("ERROR: Line {0}: {1}", m_LineNumber, m_Line);
+						if (c == '.') {
+							LOG_ERROR("Integers cannot have a decimal point!");
+						}
+						else {
+							LOG_ERROR("'{0}' is not an integer number!", expression);
+						}
+						return false;
+					}
+
 				// Validate integer expression
-				std::size_t* position{ nullptr };
-				LOG_WARN(expression);
-				int value = std::stoi(expression);
-				LOG_WARN(value);
-				//if (position != nullptr)
-				if (std::isdigit(value) != 0)
-				{
-					m_IntegerHolder.InsertToMap(variable, value);
-					return true;
+				int value{ 0 };
+				try {
+					value = std::stoi(expression);
 				}
-				else // Invalid expression
-				{
-					LOG_ERROR("ERROR: Line {0}: {1}.", m_LineNumber, m_Line);
-					LOG_ERROR("{0} is not an integer number!", expression);
+				catch (...) { // Invalid expression
+					std::cout << '\n';
+					LOG_ERROR("ERROR: Line {0}: {1}", m_LineNumber, m_Line);
+					LOG_ERROR("'{0}' is not an integer number!", expression);
 					return false;
 				}
 
-				return false;
+				m_IntegerHolder.InsertToMap(variable, value);
+				return true;
 			}
 
 			case VariableType::Real:
 			{
-				// Validate double expression
-				std::size_t* position{ nullptr };
-				double value = std::stod(expression, position);
-				if (position != nullptr)
+				bool decimalFound{ false };
+				for (const char& c : expression)
+					if (!std::isdigit(c))
+					{
+						if (c == '.' && !decimalFound)
+						{
+							decimalFound = true;
+							continue;
+						}
+						std::cout << '\n';
+						LOG_ERROR("ERROR: Line {0}: {1}", m_LineNumber, m_Line);
+						if (decimalFound) {
+							LOG_ERROR("'{0}' has more than one decimal point!", expression);
+						}
+						else {
+							LOG_ERROR("'{0}' is not a real number!", expression);
+						}
+						return false;
+					}
+
+				if (decimalFound)
 				{
+					// Validate double expression
+					double value{ 0.0 };
+					try {
+						value = std::stod(expression);
+					}
+					catch (...) { // Invalid expression
+						std::cout << '\n';
+						LOG_ERROR("ERROR: Line {0}: {1}", m_LineNumber, m_Line);
+						LOG_ERROR("'{0}' is not a real number!", expression);
+						return false;
+					}
+
 					m_RealHolder.InsertToMap(variable, value);
 					return true;
 				}
-				else // Invalid expression
+				else
 				{
-					LOG_ERROR("ERROR: Line {0}: {1} is not a real number!", m_LineNumber, expression);
+					std::cout << '\n';
+					LOG_ERROR("ERROR: Line {0}: {1}", m_LineNumber, m_Line);
+					LOG_ERROR("'{0}' is missing a decimal point!", expression);
 					return false;
 				}
-
 				return false;
 			}
 
@@ -246,6 +350,7 @@ namespace Interpreter
 				// Validate string expression
 				if (expression.front() == '"')
 				{
+					// Grab the user's string with quotation marks
 					std::string str{ m_Line };
 					int found = str.find_first_of('"');
 					str.erase(0, found + 1);
@@ -254,12 +359,13 @@ namespace Interpreter
 					{
 						str.pop_back();
 						m_StringHolder.InsertToMap(variable, str);
-						LOG_INFO("[stringholder] {0} = {1}", variable, m_StringHolder.GetValue(variable));
 						return true;
 					}
 					else
 					{
-						LOG_ERROR("ERROR: Line {0}: {1}: String missing \" at the end.", m_LineNumber, m_Line);
+						std::cout << '\n';
+						LOG_ERROR("ERROR: Line {0}: {1}", m_LineNumber, m_Line);
+						LOG_ERROR("String is missing quotation mark ('\"') at the end!");
 						return false;
 					}
 					
@@ -267,7 +373,9 @@ namespace Interpreter
 				}
 				else
 				{
-					LOG_ERROR("ERROR: Line {0}: {1}: Missing \" in the font!", m_LineNumber, m_Line);
+					std::cout << '\n';
+					LOG_ERROR("ERROR: Line {0}: {1}", m_LineNumber, m_Line);
+					LOG_ERROR("String is missing quotation mark ('\"') in the front!");
 					return false;
 				}
 				return false;
@@ -284,19 +392,20 @@ namespace Interpreter
 		switch (GetVariableType(variable))
 		{
 			case VariableType::Integer:
-				LOG_INFO(m_IntegerHolder.GetValue(variable));
+				std::cout << m_IntegerHolder.GetValue(variable);
 				break;
 
 			case VariableType::Real:
-				LOG_INFO(m_RealHolder.GetValue(variable));
+				std::cout << m_RealHolder.GetValue(variable);
 				break;
 
 			case VariableType::String:
-				LOG_INFO(m_StringHolder.GetValue(variable));
+				std::cout << m_StringHolder.GetValue(variable);
 				break;
 
 			case VariableType::Invalid:
-				LOG_ERROR("Variable Invalid");
+				std::cout << '\n';
+				LOG_ERROR("Invalid Variable!");
 				break;
 		}
 	}

@@ -27,10 +27,15 @@ namespace Interpreter
 			if (!m_Interpreter.LoadFile(filepath)) continue;
 
 			std::cout << '\n';
+			LOG_INFO("Program start");
 			m_Interpreter.ReadFile();
 			m_Interpreter.CloseFile();
 
-			Quit();
+			std::cout << '\n';
+			LOG_WARN("Restarting...");
+			m_Interpreter.Reset();
+
+			//Quit();
 		}
 	}
 }

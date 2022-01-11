@@ -1,9 +1,14 @@
 c = 2
 w = "HOLA"
+prinT c
 print
-print c
+prInt 777
+print
+print
 print w
 print " World"
-gReal = 2.5
+pRint
+gReal = 2.500
 print gReal
-end.
+print
+eNd.

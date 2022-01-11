@@ -16,6 +16,8 @@ namespace Interpreter
 
 		void ReadFile();
 
+		void Reset();
+
 	private:
 		enum class Keyword
 		{
@@ -37,8 +39,11 @@ namespace Interpreter
 		};
 
 	private:
+		bool PrintKeyword(std::istringstream& iss, std::string& word);
+
 		bool IsVariable(const std::string& str);
 		bool IsKeyword(std::string statement);
+		bool IsNumber(const std::string& statement);
 
 		bool IsVariableStored(const std::string& statement);
 
@@ -46,14 +51,14 @@ namespace Interpreter
 
 		void PrintUserVariable(const std::string& variable);
 
-		Keyword  GetKeyword(std::string statement);
+		Keyword GetKeyword(std::string statement);
 		VariableType GetVariableType(const std::string& statement);
 
 	private:
 		// File management
 		std::ifstream m_iFileStream;
 		std::string m_Line;
-		unsigned int m_LineNumber;
+		uint32_t m_LineNumber;
 
 		// User variables
 		IntegerHolder m_IntegerHolder;
@@ -64,4 +69,3 @@ namespace Interpreter
 		std::unordered_map<std::string, Keyword> m_KeywordMap;
 	};
 }
-// resources/sampleLAO.txt
