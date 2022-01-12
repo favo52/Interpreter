@@ -36,17 +36,102 @@ namespace Interpreter
 		};
 	}
 
-	bool Interpreter::LoadFile(const std::string& filepath)
+	void Interpreter::ReadWord(std::string word)
 	{
-		m_iFileStream.open(filepath);
-		if (!m_iFileStream)
+		if (IsKeyword(word))
 		{
-			LOG_ERROR("Unable to open file \"{0}\".", filepath);
-			return false;
-		}
+			LOG_TRACE("'{0}' is valid!", word);
 
-		LOG_INFO("\"{0}\" opened successfully.", filepath);
-		return true;
+			Keyword keyword = GetKeyword(word);
+			switch (keyword)
+			{
+				case Keyword::Comment: LOG_TRACE("'{0}' is a <comment statement>.", word); break;
+				case Keyword::If: LOG_TRACE("'{0}' is a <if statement>.", word); break;
+				case Keyword::Then: LOG_TRACE("'{0}' is a <then statement>.", word); break;
+				case Keyword::Read: LOG_TRACE("'{0}' is a <read statement>.", word); break;
+				case Keyword::Print: LOG_TRACE("'{0}' is a <print statement>.", word); break;	
+				case Keyword::End: LOG_TRACE("'{0}' is a <end statement>.", word); break;
+			
+				default:
+					std::cout << '\n';
+					LOG_TRACE("Invalid Keyword")
+					break;
+			}
+		}
+		else if (IsOperator(word))
+		{
+			LOG_TRACE("'{0}' is valid!", word);
+
+			Operator op = GetOperator(word);
+			if (IsArithmetic(op))
+			{
+				LOG_TRACE("'{0}' is an <arithmetic statement>.", word);
+			}
+			else if (IsRelational(op))
+			{
+				LOG_TRACE("'{0}' is a <relational operator>.", word);
+			}
+			else if (IsLogical(op))
+			{
+				LOG_TRACE("'{0}' is a <logical operator>.", word);
+			}
+
+			switch (op)
+			{
+				case Operator::Add: LOG_TRACE("It is a 'addition' (+) operation."); break;
+				case Operator::Sub: LOG_TRACE("It is a 'subtraction' (-) operation."); break;
+				case Operator::Mul: LOG_TRACE("It is a 'multiplication' (*) operation."); break;
+				case Operator::Div: LOG_TRACE("It is a 'division' (/) operation."); break;
+				case Operator::Or: LOG_TRACE("It is a 'or' (|) operation."); break;
+				case Operator::And: LOG_TRACE("It is a 'and' (&) operation."); break;
+				case Operator::Not: LOG_TRACE("It is a 'not' (!) operation."); break;
+				case Operator::Eq: LOG_TRACE("It is a 'equal' (==) operation."); break;
+				case Operator::Ne: LOG_TRACE("It is a 'not equal' (!=) operation."); break;
+				case Operator::Lt: LOG_TRACE("It is a 'less than' (<) operation."); break;
+				case Operator::Le: LOG_TRACE("It is a 'less equal' (<=) operation."); break;
+				case Operator::Gt: LOG_TRACE("It is a 'greater than' (>) operation."); break;
+				case Operator::Ge: LOG_TRACE("It is a 'greater equal' (>=) operation."); break;
+
+				default:
+					LOG_TRACE("Invalid operator.");
+					break;
+			}
+		}
+		else if (IsVariable(word))
+		{
+			LOG_TRACE("'{0}' is valid!", word);
+
+			VariableType variabletype = GetVariableType(word);
+			switch (variabletype)
+			{
+				case VariableType::Integer: LOG_TRACE("It is an <integer> variable."); break;
+				case VariableType::Real: LOG_TRACE("It is a <real> variable."); break;
+				case VariableType::String: LOG_TRACE("It is a <string> variable."); break;
+
+				default:
+					LOG_TRACE("Invalid variable.")
+			}
+		}
+		else if (IsNumber(word))
+		{
+			LOG_TRACE("'{0}' is valid!", word);
+			LOG_TRACE("It is a <number>.");
+		}
+		else if (IsSignedNumber(word))
+		{
+			LOG_TRACE("'{0}' is valid!", word);
+			LOG_TRACE("It is a <number>.");
+			LOG_TRACE("It is a <signed><unsign integer>");
+		}
+		else // Not valid
+		{
+			LOG_ERROR("'{0}' is invalid!", word);
+		}
+	}
+
+	void Interpreter::ReadLine()
+	{
+		LOG_ERROR("ReadLine() is not implemented yet!");
 	}
 
 	void Interpreter::ReadFile()
@@ -122,9 +207,11 @@ namespace Interpreter
 								// iss status:
 								// iss == a = 2 .add. 1 .add. 3 .mul. 4
 								std::string thenStatement{ iss.str() };
+								// REMINDER: Convert thenStatement to Infix expression
+								//			 Then convert Infix to Postfix expression
+								//			 Then use algorithm to push/pop and evaluate
 
-								// TODO:
-								//PerformOperation(left, right);
+								// TODO: Something like PerformOperation(left, right);
 							}
 							else // Conditional expr not true/valid
 							{
@@ -177,6 +264,19 @@ namespace Interpreter
 
 			++m_LineNumber;
 		}
+	}
+
+	bool Interpreter::LoadFile(const std::string& filepath)
+	{
+		m_iFileStream.open(filepath);
+		if (!m_iFileStream)
+		{
+			LOG_ERROR("Unable to open file \"{0}\".", filepath);
+			return false;
+		}
+
+		LOG_INFO("\"{0}\" opened successfully.", filepath);
+		return true;
 	}
 
 	void Interpreter::Reset()
@@ -302,6 +402,18 @@ namespace Interpreter
 		for (const char& c : statement)
 			if (!isdigit(c))
 				return false;
+
+		return true;
+	}
+
+	bool Interpreter::IsSignedNumber(const std::string& statement)
+	{
+		if (statement.front() == '-' || statement.front() == '+')
+		{
+			for (size_t i = 1; i < statement.size(); ++i)
+				if (!isdigit(statement[i]))
+					return false;
+		}
 
 		return true;
 	}
@@ -547,22 +659,13 @@ namespace Interpreter
 	{
 		switch (GetVariableType(variable))
 		{
-			case VariableType::Integer:
-				std::cout << m_IntegerHolder.GetValue(variable);
-				break;
+			case VariableType::Integer: std::cout << m_IntegerHolder.GetValue(variable); break;
+			case VariableType::Real: std::cout << m_RealHolder.GetValue(variable); break;
+			case VariableType::String: std::cout << m_StringHolder.GetValue(variable); break;
+			case VariableType::Invalid: std::cout << '\n'; LOG_ERROR("Invalid VariableType!"); break;
 
-			case VariableType::Real:
-				std::cout << m_RealHolder.GetValue(variable);
-				break;
-
-			case VariableType::String:
-				std::cout << m_StringHolder.GetValue(variable);
-				break;
-
-			case VariableType::Invalid:
-				std::cout << '\n';
-				LOG_ERROR("Invalid Variable!");
-				break;
+			default:
+				LOG_ERROR("Invalid VariableType!"); break;
 		}
 	}
 
@@ -606,8 +709,9 @@ namespace Interpreter
 			case 'D': case 'E':	case 'F':
 				return VariableType::Integer;
 
-			case 'G': case 'H': case 'I': case 'J':
-			case 'K': case 'L': case 'M': case 'N': case 'Ñ':
+			case 'G': case 'H': case 'I':
+			case 'J': case 'K': case 'L':
+			case 'M': case 'N': case 'Ñ':
 				return VariableType::Real;
 
 			case 'O': case 'P': case 'Q': case 'R':

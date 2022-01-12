@@ -33,6 +33,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch.h</PrecompiledHeaderFile>
     </ClCompile>
+    <ClCompile Include="src\Interpreter\Core\Stack.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Interpreter\Core\VariableHolder.h" />
@@ -40,6 +41,7 @@
     <ClInclude Include="src\Interpreter\Core\Application.h" />
     <ClInclude Include="src\Interpreter\Core\Logger.h" />
     <ClInclude Include="src\pch.h" />
+    <ClInclude Include="src\Interpreter\Core\Stack.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

@@ -10,11 +10,18 @@ namespace Interpreter
 		Interpreter();
 		virtual ~Interpreter() = default;
 
+		// Phase 1
+		void ReadWord(std::string word);
+		
+		// Phase 2
+		void ReadLine();
+
+		// Phase 3
+		void ReadFile();
+
 		// File management
 		bool LoadFile(const std::string& filepath);
 		void CloseFile() { m_iFileStream.close(); }
-
-		void ReadFile();
 
 		void Reset();
 
@@ -36,8 +43,6 @@ namespace Interpreter
 			Add, Sub, Mul, Div,		// Arithmetic
 			Or, And, Not, 			// Logical
 			Eq, Ne, Lt, Le, Gt, Ge	// Relational
-
-
 		};
 
 		enum class VariableType
@@ -55,6 +60,7 @@ namespace Interpreter
 		bool IsOperator(std::string statement);
 		bool IsVariable(const std::string& str);
 		bool IsNumber(const std::string& statement);
+		bool IsSignedNumber(const std::string& statement);
 
 		bool IsArithmetic(const Operator& op);
 		bool IsRelational(const Operator& op);

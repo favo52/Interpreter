@@ -10,7 +10,10 @@ namespace Interpreter
 		Application();
 		virtual ~Application() = default;
 
-		void Run();
+		void RunPhase1();
+		void RunPhase2();
+		void RunPhase3();
+
 		void Quit() { m_IsRunning = false; }
 
 		static Application& Get() { return *s_Instance; }

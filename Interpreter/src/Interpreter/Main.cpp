@@ -10,7 +10,9 @@ try
 	LOG_TRACE("Welcome to the LAO interpreter!");
 
 	Interpreter::Application* App = new Interpreter::Application();
-	App->Run();
+	App->RunPhase1();
+	//App->RunPhase2();
+	//App->RunPhase3();
 	delete App;
 
 	return 0;
