@@ -17,6 +17,23 @@ namespace Interpreter
 			{"PRINT", Keyword::Print},
 			{"END.", Keyword::End}
 		};
+
+		m_OperatorMap =
+		{
+			{".add.", Operator::Add},
+			{".sub.", Operator::Sub},
+			{".mul.", Operator::Mul},
+			{".div.", Operator::Div},
+			{".or.", Operator::Or},
+			{".and.", Operator::And},
+			{".not.", Operator::Not},
+			{".eq.", Operator::Eq},
+			{".ne.", Operator::Ne},
+			{".lt.", Operator::Lt},
+			{".le.", Operator::Le},
+			{".gt.", Operator::Gt},
+			{".ge.", Operator::Ge}
+		};
 	}
 
 	bool Interpreter::LoadFile(const std::string& filepath)
@@ -67,7 +84,7 @@ namespace Interpreter
 				}
 				else if (IsKeyword(word))
 				{
-					// deal with keywords
+					// Deal with keywords
 					Keyword keyword = GetKeyword(word);
 					switch (keyword)
 					{
@@ -75,18 +92,53 @@ namespace Interpreter
 						{
 							break;
 						}
+
 						case Keyword::If:
 						{
+							bool isValid = ValidateIf();
+							if (!isValid)
+							{
+								std::cout << '\n';
+								LOG_ERROR("ERROR: Line {0}: {1}", m_LineNumber, m_Line);
+								LOG_ERROR("Missing the 'Then' Keyword.");
+								return;
+							}
+							
+							// iss status:
+							// iss == 3 .gt. 2 then a = 2 .add. 1 .add. 3 .mul. 4
+							std::string conditionalExpression;
+							for (std::string tempWord; iss >> tempWord;)
+							{
+								if (GetKeyword(tempWord) == Keyword::Then)
+									break;
+
+								conditionalExpression += tempWord + ' ';
+							}
+							conditionalExpression.pop_back(); // Pop the last whitespace
+
+							// TODO: Deal with conditional statement
+							if (IsConditionalExprTrue(conditionalExpression))
+							{
+								// iss status:
+								// iss == a = 2 .add. 1 .add. 3 .mul. 4
+								std::string thenStatement{ iss.str() };
+
+								// TODO:
+								//PerformOperation(left, right);
+							}
+							else // Conditional expr not true/valid
+							{
+								return;
+							}
+
 							break;
 						}
-						case Keyword::Then:
-						{
-							break;
-						}
+
 						case Keyword::Read:
 						{
 							break;
 						}
+
 						case Keyword::Print:
 						{
 							if (!PrintKeyword(iss, word))
@@ -94,6 +146,7 @@ namespace Interpreter
 
 							break;
 						}
+
 						case Keyword::End:
 						{
 							Application& app = Application::Get();
@@ -107,7 +160,7 @@ namespace Interpreter
 						{
 							std::cout << '\n';
 							LOG_ERROR("ERROR: Line {0}: {1}", m_LineNumber, m_Line);
-							LOG_ERROR("\t\t\"{0}\" Keyword is not implemented yet.", word);
+							LOG_ERROR("\"{0}\" Keyword is not implemented yet.", word);
 							return;
 						}
 					}
@@ -230,6 +283,20 @@ namespace Interpreter
 			return false;
 	}
 
+	bool Interpreter::IsOperator(std::string str)
+	{
+		// Make all characters lowercase
+		for (char& c : str)
+			c = std::tolower(c);
+
+		// Search hash map for the keyword
+		auto x = m_OperatorMap.find(str);
+		if (x != std::end(m_OperatorMap))
+			return true;
+		else
+			return false;
+	}
+
 	bool Interpreter::IsNumber(const std::string& statement)
 	{
 		for (const char& c : statement)
@@ -237,6 +304,55 @@ namespace Interpreter
 				return false;
 
 		return true;
+	}
+
+	bool Interpreter::IsArithmetic(const Operator& op)
+	{
+		switch (op)
+		{
+			case Operator::Add:
+			case Operator::Sub:
+			case Operator::Mul:
+			case Operator::Div:
+				return true;
+
+			default:
+				return false;
+		}
+		return false;
+	}
+
+	bool Interpreter::IsRelational(const Operator& op)
+	{
+		switch (op)
+		{
+			case Operator::Gt:
+			case Operator::Lt:
+			case Operator::Eq:
+			case Operator::Ge:
+			case Operator::Le:
+			case Operator::Ne:
+				return true;
+
+			default:
+				return false;
+		}
+		return false;
+	}
+
+	bool Interpreter::IsLogical(const Operator& op)
+	{
+		switch (op)
+		{
+			case Operator::Or:
+			case Operator::And:
+			case Operator::Not:
+				return true;
+
+			default:
+				return false;
+		}
+		return false;
 	}
 	
 	bool Interpreter::IsVariableStored(const std::string& statement)
@@ -258,6 +374,44 @@ namespace Interpreter
 					return true;
 				break;
 		}
+
+		return false;
+	}
+
+	bool Interpreter::IsConditionalExprTrue(const std::string condExpr)
+	{
+		std::vector<Operator> opArray;
+
+		std::istringstream iss{ condExpr };
+		for (std::string word; iss >> word;)
+		{
+			if (IsOperator(word))
+			{
+				Operator op = GetOperator(word);
+				if (IsArithmetic(op))
+				{
+					std::cout << '\n';
+					LOG_ERROR("ERROR: Line {0}: {1}", m_LineNumber, m_Line);
+					LOG_ERROR("Condional expression have an arithmetic operator.");
+					return false;
+				}
+
+				opArray.push_back(op); // Save all operators found
+			}
+
+			// TODO: Deal with numbers
+			// TODO: Deal with strings
+		}
+
+		return false;
+	}
+
+	bool Interpreter::ValidateIf()
+	{
+		std::istringstream iss{ m_Line };
+		for (std::string word; iss >> word;)
+			if (GetKeyword(word) == Keyword::Then)
+				return true;
 
 		return false;
 	}
@@ -424,6 +578,20 @@ namespace Interpreter
 			return x->second;
 		else
 			return Keyword::Invalid;
+	}
+
+	Interpreter::Operator Interpreter::GetOperator(std::string statement)
+	{
+		// Make all characters lowercase
+		for (char& c : statement)
+			c = std::tolower(c);
+
+		// Search hash map for the keyword
+		auto x = m_OperatorMap.find(statement);
+		if (x != std::end(m_OperatorMap))
+			return x->second;
+		else
+			return Operator::Invalid;
 	}
 
 	Interpreter::VariableType Interpreter::GetVariableType(const std::string& variable)

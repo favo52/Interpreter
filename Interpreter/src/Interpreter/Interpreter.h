@@ -30,6 +30,16 @@ namespace Interpreter
 			End
 		};
 
+		enum class Operator
+		{
+			Invalid = 0,
+			Add, Sub, Mul, Div,		// Arithmetic
+			Or, And, Not, 			// Logical
+			Eq, Ne, Lt, Le, Gt, Ge	// Relational
+
+
+		};
+
 		enum class VariableType
 		{
 			Invalid = 0,
@@ -41,17 +51,26 @@ namespace Interpreter
 	private:
 		bool PrintKeyword(std::istringstream& iss, std::string& word);
 
-		bool IsVariable(const std::string& str);
 		bool IsKeyword(std::string statement);
+		bool IsOperator(std::string statement);
+		bool IsVariable(const std::string& str);
 		bool IsNumber(const std::string& statement);
 
+		bool IsArithmetic(const Operator& op);
+		bool IsRelational(const Operator& op);
+		bool IsLogical(const Operator& op);
+
 		bool IsVariableStored(const std::string& statement);
+		bool IsConditionalExprTrue(const std::string condExpr);
+
+		bool ValidateIf();
 
 		bool MakeAssignment(const std::string& variable, const std::string& expression);
 
 		void PrintUserVariable(const std::string& variable);
 
 		Keyword GetKeyword(std::string statement);
+		Operator GetOperator(std::string statement);
 		VariableType GetVariableType(const std::string& statement);
 
 	private:
@@ -65,7 +84,8 @@ namespace Interpreter
 		RealHolder m_RealHolder;
 		StringHolder m_StringHolder;
 
-		// Keywords
+		// Hash Tables
 		std::unordered_map<std::string, Keyword> m_KeywordMap;
+		std::unordered_map<std::string, Operator> m_OperatorMap;
 	};
 }
