@@ -56,17 +56,22 @@ namespace Interpreter
 	private:
 		bool PrintKeyword(std::istringstream& iss, std::string& word);
 
-		bool IsKeyword(std::string statement);
-		bool IsOperator(std::string statement);
+		bool IsKeyword(std::string word);
+		bool IsOperator(std::string word);
 		bool IsVariable(const std::string& str);
-		bool IsNumber(const std::string& statement);
-		bool IsSignedNumber(const std::string& statement);
 
+		// Numbers
+		bool IsIntegerNumber(const std::string& word);
+		bool IsRealNumber(const std::string& word);
+		bool IsSignedNumber(std::string word);
+		bool IsDecimalPoint(const std::string& word);
+		bool IsExponentNumber(const std::string& word);
+		
 		bool IsArithmetic(const Operator& op);
 		bool IsRelational(const Operator& op);
 		bool IsLogical(const Operator& op);
 
-		bool IsVariableStored(const std::string& statement);
+		bool IsVariableStored(const std::string& word);
 		bool IsConditionalExprTrue(const std::string condExpr);
 
 		bool ValidateIf();
@@ -75,9 +80,13 @@ namespace Interpreter
 
 		void PrintUserVariable(const std::string& variable);
 
-		Keyword GetKeyword(std::string statement);
-		Operator GetOperator(std::string statement);
-		VariableType GetVariableType(const std::string& statement);
+		// Phase 1 function
+		void PrintNumberRules(const std::string& word);
+		//
+
+		Keyword GetKeyword(std::string word);
+		Operator GetOperator(std::string word);
+		VariableType GetVariableType(const std::string& word);
 
 	private:
 		// File management

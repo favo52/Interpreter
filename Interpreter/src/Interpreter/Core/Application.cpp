@@ -28,13 +28,21 @@ namespace Interpreter
 			if (line.empty()) continue;
 			if (line == "--q") { LOG_INFO("Program end"); return; };
 
-			bool printNewline{ false };
-			std::istringstream iss{ line };
-			for (std::string word; iss >> word;)
+			// Deal with strings
+			if (line.front() == '\"')
 			{
-				if (printNewline) std::cout << "\n";
-				if (!iss.eof()) printNewline = true;
-				m_Interpreter.ReadWord(word);
+				m_Interpreter.ReadWord(line);
+			}
+			else // Deal with everything else
+			{
+				bool printNewline{ false };
+				std::istringstream iss{ line };
+				for (std::string word; iss >> word;)
+				{
+					if (printNewline) std::cout << "\n";
+					if (!iss.eof()) printNewline = true;
+					m_Interpreter.ReadWord(word);
+				}
 			}
 #if OLD
 			if (std::cin >> word)
