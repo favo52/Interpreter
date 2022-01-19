@@ -58,6 +58,11 @@ namespace Interpreter
 					break;
 			}
 		}
+		else if (word == "=")
+		{
+			LOG_TRACE("'{0}' is valid!", word);
+			LOG_TRACE("'{0}' is an <assignment statement>.", word);
+		}
 		else if (IsOperator(word))
 		{
 			LOG_TRACE("'{0}' is valid!", word);
@@ -427,22 +432,34 @@ namespace Interpreter
 			return false;
 	}
 
-	bool Interpreter::IsIntegerNumber(const std::string& statement)
+	bool Interpreter::IsIntegerNumber(const std::string& word)
 	{
-		for (const char& c : statement)
-			if (!isdigit(c))
+		for (size_t i = 0; i < word.size(); ++i)
+			if (!isdigit(word[i]))
+			{
+				if (word[i] == '-' && i == 0) continue;
 				return false;
+			}
 
 		return true;
 	}
 
 	bool Interpreter::IsRealNumber(const std::string& word)
 	{
-		if (IsExponentNumber(word))
+		bool IsExponent = IsExponentNumber(word);
+		bool IsDecimal = IsDecimalPoint(word);
+
+		if (IsDecimal && IsExponent)
 			return true;
 
-		if (IsDecimalPoint(word))
+		if (IsDecimal && !IsExponent)
+		{
+			for (const char& c : word)
+				if (!isdigit(c) && c != '.')
+					return false;
+
 			return true;
+		}
 
 		return false;
 	}
@@ -464,12 +481,21 @@ namespace Interpreter
 	bool Interpreter::IsDecimalPoint(const std::string& word)
 	{
 		bool isDecimalPointFound{ false };
+		bool isDigitFound{ false };
 		for (size_t i = 0; i < word.size(); ++i)
 		{
-			if (!std::isdigit(word[i]))
+			if (isdigit(word[i]))
+				isDigitFound = true;
+
+			if (isDigitFound && !std::isdigit(word[i]))
 			{
-				if (word[i] == '-' && i == 0)
+				// Guard against negatives and exponents
+				if (word[i] == '-' && i == 0 || (word[i] == 'e' || word[i] == 'E'))
 					continue;
+
+				// Guard against any other char
+				if (word[i] != '.' && word[i])
+					return false;
 
 				if (word[i] == '.' && !isDecimalPointFound)
 				{
@@ -501,8 +527,10 @@ namespace Interpreter
 				if (word[i] == '-' && i == 0)
 					continue;
 
-				if (!IsDecimalPoint(word))
-					return false;
+				//LOG_TRACE("1");
+				//if (!IsDecimalPoint(word) && word[i] != 'e' && word[i] != 'E')
+				//	return false;
+				//LOG_TRACE("2");
 
 				if ((word[i] == 'e' || word[i] == 'E') && !isExponentFound)
 				{
@@ -780,22 +808,43 @@ namespace Interpreter
 		if (!IsSignedNumber(word)) 
 		{
 			LOG_TRACE("<unsign integer>.");
-			if (std::stod(word) >= 0.0 && std::stod(word) < 10.0) {
-				LOG_TRACE("<digit>.");
+			if (IsIntegerNumber(word))
+			{
+				if (std::stoi(word) >= 0.0 && std::stoi(word) < 10.0) {
+					LOG_TRACE("<digit>.");
+				}
+				else
+					LOG_TRACE("<unsign integer><digit>.");
 			}
-			else
-				LOG_TRACE("<unsign integer><digit>.");
+			else if (IsRealNumber(word))
+			{
+				if (std::stod(word) >= 0.0 && std::stod(word) < 10.0) {
+					LOG_TRACE("<digit>.");
+				}
+				else
+					LOG_TRACE("<unsign integer><digit>.");
+			}
 		}
 		// Negative numbers
 		else
 		{
 			LOG_TRACE("<signed><unsign integer>");
-			if (std::stod(word) > -10.0 && std::stod(word) <= 0.0) {
-				LOG_TRACE("<digit>.");
+			if (IsIntegerNumber(word))
+			{
+				if (std::stoi(word) >= 0.0 && std::stoi(word) < 10.0) {
+					LOG_TRACE("<digit>.");
+				}
+				else
+					LOG_TRACE("<unsign integer><digit>.");
 			}
-			else
-				LOG_TRACE("<unsign integer><digit>.");
-
+			else if (IsRealNumber(word))
+			{
+				if (std::stod(word) > -10.0 && std::stod(word) <= 0.0) {
+					LOG_TRACE("<digit>.");
+				}
+				else
+					LOG_TRACE("<unsign integer><digit>.");
+			}
 		}
 	}
 

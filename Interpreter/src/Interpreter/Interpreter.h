@@ -104,3 +104,8 @@ namespace Interpreter
 		std::unordered_map<std::string, Operator> m_OperatorMap;
 	};
 }
+
+// BROKEN:
+// 5.5ee5
+// 5.5e-4
+// .5
