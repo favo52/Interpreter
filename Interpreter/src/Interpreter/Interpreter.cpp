@@ -46,6 +46,20 @@ namespace Interpreter
 			return;
 		}
 
+		{
+			int count{ 0 };
+			for (const char& c : word)
+			{
+				if (c == '-')
+					++count;
+			}
+			if (count > 2)
+			{
+				LOG_ERROR("{0} Too many '-' signs!", word);
+				return;
+			}
+		}
+
 		if (IsKeyword(word))
 		{
 			LOG_TRACE("'{0}' is valid!", word);
@@ -522,7 +536,18 @@ namespace Interpreter
 				}
 				else if (word[i] == '.' && isDecimalPointFound)
 				{
-					LOG_ERROR("'{0}' has more than one decimal point!", word);
+					int count{ 0 };
+					for (const char& c : word)
+						if (c == '-') ++count;
+					LOG_TRACE(count);
+					if (m_IsNegativeExponent && count < 3)
+					{
+						continue;
+					}
+					else
+					{
+						LOG_ERROR("'{0}' has more than one decimal point!", word);
+					}
 					return false;
 				}
 			}
