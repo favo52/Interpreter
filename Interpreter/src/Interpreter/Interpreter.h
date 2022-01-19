@@ -102,10 +102,11 @@ namespace Interpreter
 		// Hash Tables
 		std::unordered_map<std::string, Keyword> m_KeywordMap;
 		std::unordered_map<std::string, Operator> m_OperatorMap;
+
+		bool m_IsNegativeExponent{ false };
 	};
 }
 
 // BROKEN:
-// 5.5ee5
 // 5.5e-4
 // .5

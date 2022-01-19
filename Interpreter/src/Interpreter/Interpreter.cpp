@@ -38,6 +38,14 @@ namespace Interpreter
 
 	void Interpreter::ReadWord(std::string word)
 	{
+		if (word.size() == 1 &&
+			!isalnum(word.front()) &&
+			word.front() != '=')
+		{
+			LOG_ERROR("'{0}' is invalid!", word);
+			return;
+		}
+
 		if (IsKeyword(word))
 		{
 			LOG_TRACE("'{0}' is valid!", word);
@@ -437,7 +445,9 @@ namespace Interpreter
 		for (size_t i = 0; i < word.size(); ++i)
 			if (!isdigit(word[i]))
 			{
-				if (word[i] == '-' && i == 0) continue;
+				if (word[i] == '-' && i == 0)
+					continue;
+
 				return false;
 			}
 
@@ -490,8 +500,16 @@ namespace Interpreter
 			if (isDigitFound && !std::isdigit(word[i]))
 			{
 				// Guard against negatives and exponents
-				if (word[i] == '-' && i == 0 || (word[i] == 'e' || word[i] == 'E'))
-					continue;
+				if (m_IsNegativeExponent)
+				{
+					if (word[i] == '-' || (word[i] == 'e' || word[i] == 'E'))
+						continue;
+				}
+				else
+				{
+					if (word[i] == '-' && i == 0 || (word[i] == 'e' || word[i] == 'E'))
+						continue;
+				}
 
 				// Guard against any other char
 				if (word[i] != '.' && word[i])
@@ -519,22 +537,21 @@ namespace Interpreter
 	bool Interpreter::IsExponentNumber(const std::string& word)
 	{
 		bool isExponentFound{ false };
+		m_IsNegativeExponent = false;
 		for (size_t i = 0; i < word.size(); ++i)
 		{
 			if (!std::isdigit(word[i]))
 			{
-				// Guard against negative numbers
-				if (word[i] == '-' && i == 0)
+				// Ignore '-' signs
+				if (word[i] == '-')
 					continue;
-
-				//LOG_TRACE("1");
-				//if (!IsDecimalPoint(word) && word[i] != 'e' && word[i] != 'E')
-				//	return false;
-				//LOG_TRACE("2");
 
 				if ((word[i] == 'e' || word[i] == 'E') && !isExponentFound)
 				{
 					isExponentFound = true;
+					if (word[i + 1] == '-')
+						m_IsNegativeExponent = true;
+
 					continue;
 				}
 				else if ((word[i] == 'e' || word[i] == 'E') && isExponentFound)
