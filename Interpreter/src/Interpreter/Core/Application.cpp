@@ -28,6 +28,19 @@ namespace Interpreter
 			if (line.empty()) continue;
 			if (line == "--q") { LOG_INFO("Program end"); return; };
 
+			bool whitespace{ false };
+			for (const char& c : line)
+			{
+				if (c == ' ')
+				{
+					LOG_ERROR("ERROR: Whitespace found!");
+					whitespace = true;
+					break;
+				}
+			}
+			if (whitespace)
+				continue;
+
 			// Deal with strings
 			if (line.front() == '\"')
 			{

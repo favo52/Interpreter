@@ -63,6 +63,7 @@ namespace Interpreter
 		if (IsKeyword(word))
 		{
 			LOG_TRACE("'{0}' is valid!", word);
+			LOG_TRACE("'{0}' is a KEYWORD!", word);
 
 			Keyword keyword = GetKeyword(word);
 			switch (keyword)
@@ -92,7 +93,7 @@ namespace Interpreter
 			Operator op = GetOperator(word);
 			if (IsArithmetic(op))
 			{
-				LOG_TRACE("'{0}' is an <arithmetic statement>.", word);
+				LOG_TRACE("'{0}' is an <arithmetic operator>.", word);
 			}
 			else if (IsRelational(op))
 			{
@@ -476,6 +477,9 @@ namespace Interpreter
 		if (IsDecimal && IsExponent)
 			return true;
 
+		if (IsSignedNumber(word))
+			return true;
+
 		if (IsDecimal && !IsExponent)
 		{
 			for (const char& c : word)
@@ -490,7 +494,7 @@ namespace Interpreter
 
 	bool Interpreter::IsSignedNumber(std::string word)
 	{
-		if (word.front() == '-')
+		if (word.front() == '-' && word[1] != '-')
 		{
 			word.erase(word.begin());
 			if (!IsIntegerNumber(word) && !IsRealNumber(word))
