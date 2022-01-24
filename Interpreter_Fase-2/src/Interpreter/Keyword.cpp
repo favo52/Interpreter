@@ -24,7 +24,7 @@ namespace Interpreter
 		for (char& c : word)
 			c = std::toupper(c);
 
-		// Search hash map for the KeywordType
+		// Search for the string in the hash map
 		auto x = m_KeywordMap.find(word);
 		if (x != std::end(m_KeywordMap))
 			return true;
@@ -79,7 +79,7 @@ namespace Interpreter
 		for (char& c : word)
 			c = std::toupper(c);
 
-		// Search hash map for the Keywords
+		// Search hash map for the KeywordType
 		auto x = m_KeywordMap.find(word);
 		if (x != std::end(m_KeywordMap))
 			return x->second;

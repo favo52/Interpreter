@@ -36,7 +36,7 @@ namespace Interpreter
 		for (char& c : word)
 			c = std::tolower(c);
 
-		// Search hash map for the Keywords
+		// Search for the string in the hash map
 		auto x = m_OperatorMap.find(word);
 		if (x != std::end(m_OperatorMap))
 			return true;
@@ -112,8 +112,7 @@ namespace Interpreter
 			case OperatorType::Ge: LOG_TRACE("It's a 'greater equal' (>=) operation."); break;
 			case OperatorType::Invalid: LOG_ERROR("Invalid operation."); break;
 
-			default:
-				LOG_ERROR("Unknown Operator!"); break;
+			default: LOG_ERROR("Unknown Operator!"); break;
 		}
 	}
 
@@ -123,7 +122,7 @@ namespace Interpreter
 		for (char& c : word)
 			c = std::tolower(c);
 
-		// Search hash map for the Keywords
+		// Search hash map for the OperatorType
 		auto x = m_OperatorMap.find(word);
 		if (x != std::end(m_OperatorMap))
 			return x->second;
