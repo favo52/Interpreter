@@ -1,0 +1,14 @@
+w = "HOLA"
+y = " MUNDO"
+O = " o O o O o O O O o O o OOOO"
+P = "Papita   ."
+q = "queueueue eueue ueueue"
+print w
+print y
+print
+print O
+print
+print P
+print
+print q
+end.
