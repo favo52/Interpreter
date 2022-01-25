@@ -3,105 +3,113 @@
 
 #include "Core/Application.h"
 
-#include "Keyword.h"
-#include "Operator.h"
-#include "Variable.h"
-
 namespace Interpreter
 {
 	void Interpreter::InterpretLine(const std::string& line)
 	{
 		m_Line = line;
-		m_ISS.str(line);
 
-		for (std::string word; m_ISS >> word;)
+		std::istringstream iss{ line };
+		std::string word{};
+		iss >> word; 
+
+		if (Keyword::IsKeyword(word))
 		{
-			WordType wordType = GetWordType(word);
-			if (wordType != WordType::Invalid)
-				LOG_INFO("'{0}' is a valid word!", word);
+			LOG_TRACE("Keyword");
+			KeywordType keywordType = Keyword::GetKeyword(word);
 
-			switch (wordType)
+			std::string expression = GetExpression(iss);
+			Keyword::ValidateKeyword(keywordType, expression);
+
+			//PrintLine();
+		}
+		else if (Variable::IsVariable(word) && !Keyword::IsKeyword(word))
+		{
+			VariableType varType = Variable::GetVariableType(word);
+
+			iss >> word;
+			if (word != "=") ERROR("Did you forget the assignment '=' for the variable?");
+
+			std::cout << '\n';
+			LOG_TRACE("<assignment statement>");
+
+			// Grab the expression after the '='
+			std::string expression = GetExpression(iss);
+			ValidateAssignment(varType, expression);
+
+			std::cout << '\n';
+			std::istringstream stream{ expression };
+			for (std::string w; stream >> w;)
+				ReadWord(w);
+		}
+		else
+		{
+			if (IsNumber(word))
+				ERROR("A Number is not a valid instruction!");
+
+			if (IsString(word))
+				ERROR("A String is not a valid instruction!");
+
+			ReadWord(word);
+		}
+	}
+
+	void Interpreter::ReadWord(std::string word)
+	{
+		WordType wordType = GetWordType(word);
+		if (wordType != WordType::Invalid)
+			LOG_INFO("'{0}' is a valid word!", word);
+
+		switch (wordType)
+		{
+			case WordType::Keyword:
 			{
-				case WordType::Keyword:
-				{
-					LOG_TRACE("It's a Keywords.");
-					KeywordType keywordType = Keyword::GetKeyword(word);
-					Keyword::InterpretKeyword(keywordType);
-					break;
-				}
-
-				case WordType::Variable:
-				{
-					LOG_TRACE("It's a Variable.");
-					VariableType varType = Variable::GetVariableType(word);
-
-					m_ISS >> word;
-					if (word != "=") ERROR("Did you forget the assignment '=' for the variable?");
-
-					// Grab the expression
-					std::string expression{};
-					for (std::string str; m_ISS >> str;)
-					{
-						expression += str + ' ';
-						if (m_ISS.eof()) expression.pop_back();
-					}
-					
-					Variable::InterpretVariable(varType, expression);
-					break;
-				}
-
-				case WordType::Number:
-				{
-					LOG_TRACE("It's a Number.");
-					break;
-				}
-
-				case WordType::String:
-				{
-					LOG_TRACE("It's a String.");
-					break;
-				}
-
-				case WordType::Operator:
-				{
-					LOG_TRACE("It's an Operator.");
-
-					OperatorType op = Operator::GetOperator(word);
-					if (Operator::IsArithmetic(op))
-					{
-
-					}
-
-					if (Operator::IsRelational(op))
-					{
-
-					}
-
-					if (Operator::IsLogical(op))
-					{
-
-					}
-					
-					break;
-				}
-
-				case WordType::Invalid:
-					LOG_ERROR("'{0}' is an invalid word!", word);
-					break;
-
-				default:
-					LOG_ERROR("Unknown WordType!");
-					break;
+				LOG_TRACE("It's a KEYWORD.");
+				KeywordType keyword = Keyword::GetKeyword(word);
+				PrintKeyword(keyword);
+				break;
 			}
 
-			//std::cout << std::endl;
+			case WordType::Variable:
+			{
+				LOG_TRACE("It's a Variable.");
+				VariableType varType = Variable::GetVariableType(word);
+				PrintVariable(varType);
+				break;
+			}
+
+			case WordType::Number:
+				PrintNumber(word);
+				break;
+
+			case WordType::String:
+				LOG_TRACE("It's a String.");
+				PrintString(word);
+				break;
+
+			case WordType::Operator:
+			{
+				OperatorType op = Operator::GetOperator(word);
+				if (Operator::IsArithmetic(op)) LOG_TRACE("<arithmetic operator>");
+				if (Operator::IsRelational(op)) LOG_TRACE("<relational operator>");
+				if (Operator::IsLogical(op)) LOG_TRACE("<logical operator>");
+				PrintOperator(op);
+				break;
+			}
+
+			case WordType::Invalid:
+				LOG_ERROR("'{0}' is an invalid word!", word);
+				break;
+
+			default:
+				LOG_ERROR("Unknown WordType!");
+				break;
 		}
 	}
 
 	void Interpreter::Reset()
 	{
 		m_Line.clear();
-		m_ISS.clear();
 
 		m_IntValue = 0;
 		m_RealValue = 0.0f;
@@ -179,13 +187,124 @@ namespace Interpreter
 		return false;
 	}
 
-	void Interpreter::InterpretNumber(const std::string& word)
+	void Interpreter::ValidateAssignment(VariableType varType, std::string expression)
 	{
+		std::string word{};
+		std::istringstream iss{ expression };
+		iss >> word;
+		switch (varType)
+		{
+			case VariableType::Integer:
+			{
+				if (!IsInteger(word) || IsReal(word))
+					ERROR("Invalid assignment to <integer> variable.");
+				break;
+			}
+
+			case VariableType::Real:
+			{
+				if (!IsReal(word) || IsInteger(word))
+					ERROR("Invalid assignment to <real> variable.");
+				break;
+			}
+
+			case VariableType::String:
+			{
+				if (!IsString(word))
+					ERROR("Invalid assignment to <string> variable.");
+				break;
+			}
+		}
 	}
 
-	void Interpreter::InterpretString(const std::string& word)
+	void Interpreter::PrintKeyword(KeywordType keyword)
 	{
+		switch (keyword)
+		{
+			case KeywordType::Comment: LOG_TRACE("<comment statement>"); break;
+			case KeywordType::If: LOG_TRACE("<if statement>"); break;
+			case KeywordType::Then: LOG_TRACE("<then statement>"); break;
+			case KeywordType::Read: LOG_TRACE("<read statement>"); break;
+			case KeywordType::Print: LOG_TRACE("<print statement>"); break;
+			case KeywordType::End: LOG_TRACE("<end statement>"); break;
+			case KeywordType::Invalid: LOG_ERROR("<invalid>"); break;
 
+			default:
+				LOG_ERROR("Unknown Keyword!"); break;
+		}
+	}
+
+	void Interpreter::PrintVariable(VariableType varType)
+	{
+		switch (varType)
+		{
+			case VariableType::Integer: LOG_TRACE("<integer> variable."); break;
+			case VariableType::Real: LOG_TRACE("<real> variable."); break;
+			case VariableType::String: LOG_TRACE("<string> variable."); break;
+			case VariableType::Invalid: LOG_ERROR("<invalid>"); break;
+
+			default:
+				LOG_ERROR("Unknown VariableType!") break;
+		}
+	}
+
+	void Interpreter::PrintNumber(const std::string& word)
+	{
+		if (IsInteger(word))
+		{
+			LOG_TRACE("It's an <integer> number.");
+			if (m_IntValue >= 0) { LOG_TRACE("<unsign integer>"); }
+			else if (m_IntValue < 0) LOG_TRACE("<sign><unsign integer>");
+		}
+		else
+		{
+			LOG_TRACE("It's a <real> number.");
+			if (m_RealValue >= 0.0f)
+			{
+				LOG_TRACE("<unsign integer><decimal part>");
+			}
+			else if (m_RealValue < 0.0f)
+				LOG_TRACE("<sign><unsign integer><decimal part>");
+
+			if (m_IsExponential)
+				LOG_TRACE("<exponent part>");
+		}
+	}
+
+	void Interpreter::PrintString(const std::string& word)
+	{
+		if (word.size() > 2)
+		{
+			LOG_TRACE("<any string><any sequence of character>");
+		}
+		else
+		{
+			LOG_TRACE("<string> \"\"");
+		}
+	}
+
+	void Interpreter::PrintOperator(OperatorType op)
+	{
+		switch (op)
+		{
+			case OperatorType::Add: LOG_TRACE("It's a 'addition' (+) operation."); break;
+			case OperatorType::Sub: LOG_TRACE("It's a 'subtraction' (-) operation."); break;
+			case OperatorType::Mul: LOG_TRACE("It's a 'multiplication' (*) operation."); break;
+			case OperatorType::Div: LOG_TRACE("It's a 'division' (/) operation."); break;
+			case OperatorType::Or: LOG_TRACE("It's a 'or' (||) operation."); break;
+			case OperatorType::And: LOG_TRACE("It's a 'and' (&&) operation."); break;
+			case OperatorType::Not: LOG_TRACE("It's a 'not' (!) operation."); break;
+			case OperatorType::Eq: LOG_TRACE("It's a 'equal' (==) operation."); break;
+			case OperatorType::Ne: LOG_TRACE("It's a 'not equal' (!=) operation."); break;
+			case OperatorType::Lt: LOG_TRACE("It's a 'less than' (<) operation."); break;
+			case OperatorType::Le: LOG_TRACE("It's a 'less equal' (<=) operation."); break;
+			case OperatorType::Gt: LOG_TRACE("It's a 'greater than' (>) operation."); break;
+			case OperatorType::Ge: LOG_TRACE("It's a 'greater equal' (>=) operation."); break;
+			case OperatorType::Invalid: LOG_ERROR("Invalid operation."); break;
+
+		default:
+			LOG_ERROR("Unknown Operator!"); break;
+		}
 	}
 
 	WordType Interpreter::GetWordType(std::string word)
@@ -197,5 +316,15 @@ namespace Interpreter
 		if (Operator::IsOperator(word)) return WordType::Operator;
 
 		return WordType::Invalid;
+	}
+
+	std::string Interpreter::GetExpression(std::istringstream& iss)
+	{
+		std::string expression{};
+		std::getline(iss, expression);
+		if (expression.front() == ' ')
+			expression.erase(expression.begin()); // erase front
+
+		return expression;
 	}
 }

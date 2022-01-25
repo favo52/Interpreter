@@ -12,34 +12,6 @@ namespace Interpreter
         return true;
     }
 
-    void Variable::InterpretVariable(VariableType varType, std::string expression)
-	{
-		switch (varType)
-		{
-			case VariableType::Integer:
-			{
-
-				break;
-			}
-			case VariableType::Real:
-			{
-
-				break;
-			}
-			case VariableType::String:
-			{
-				//if ()
-				break;
-			}
-			case VariableType::Invalid:
-				break;
-
-			default:
-				LOG_ERROR("Unknown VariableType!");
-				break;
-		}
-	}
-
     VariableType Variable::GetVariableType(const std::string& word)
 	{
 		// Make the first letter uppercase

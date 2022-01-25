@@ -34,7 +34,7 @@ namespace Interpreter
 			std::string word;
 			for (int i = 0; iss >> word; ++i)
 				if (i > 0) Error("ERROR: Only one word is valid!");
-
+			
 			if (word == QUIT) { LOG_INFO("Program end"); return; };
 
 			// Interpret the word

@@ -103,7 +103,7 @@ namespace Interpreter
 
 		// Search hash map for the keyword
 		auto x = m_KeywordMap.find(word);
-		if (x != std::end(m_KeywordMap))
+		if (x != m_KeywordMap.end())
 			return true;
 		else
 			return false;
@@ -158,7 +158,7 @@ namespace Interpreter
 
 		// Search hash map for the keyword
 		auto x = m_OperatorMap.find(word);
-		if (x != std::end(m_OperatorMap))
+		if (x != m_OperatorMap.end())
 			return true;
 		else
 			return false;
@@ -186,7 +186,7 @@ namespace Interpreter
 		{
 			size_t lastChar{ 0 };
 			m_RealValue = std::stof(word, &lastChar);
-
+			LOG_INFO(std::to_string(m_RealValue));
 			return lastChar == word.size();
 		}
 		catch (...)
@@ -362,7 +362,7 @@ namespace Interpreter
 
 		// Search hash map for the keyword
 		auto x = m_KeywordMap.find(word);
-		if (x != std::end(m_KeywordMap))
+		if (x != m_KeywordMap.end())
 			return x->second;
 		else
 			return Keyword::Invalid;
@@ -376,7 +376,7 @@ namespace Interpreter
 
 		// Search hash map for the keyword
 		auto x = m_OperatorMap.find(word);
-		if (x != std::end(m_OperatorMap))
+		if (x != m_OperatorMap.end())
 			return x->second;
 		else
 			return Operator::Invalid;

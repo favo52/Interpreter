@@ -13,16 +13,10 @@ namespace Interpreter
 	class Operator
 	{
 	public:
-		Operator();
-		virtual ~Operator() = default;
-
 		static bool IsOperator(std::string word);
 		static bool IsArithmetic(const OperatorType& op);
 		static bool IsRelational(const OperatorType& op);
 		static bool IsLogical(const OperatorType& op);
-
-		// Or maybe interpret conditional statement?
-		static void InterpretOperator(OperatorType op);
 
 		static OperatorType GetOperator(std::string word);
 

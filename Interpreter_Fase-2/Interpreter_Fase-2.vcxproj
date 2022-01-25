@@ -165,12 +165,10 @@
   <ItemGroup>
     <ClCompile Include="src\Interpreter\Operator.cpp" />
     <ClCompile Include="src\Interpreter\Keyword.cpp" />
-    <ClCompile Include="src\Interpreter\Calculator\Calculator.cpp" />
     <ClCompile Include="src\Interpreter\Core\Application.cpp" />
     <ClCompile Include="src\Interpreter\Core\Logger.cpp" />
     <ClCompile Include="src\Interpreter\Interpreter.cpp" />
     <ClCompile Include="src\Interpreter\Main.cpp" />
-    <ClCompile Include="src\Interpreter\Calculator\Token.cpp" />
     <ClCompile Include="src\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">pch.h</PrecompiledHeaderFile>
@@ -186,12 +184,10 @@
   <ItemGroup>
     <ClInclude Include="src\Interpreter\Operator.h" />
     <ClInclude Include="src\Interpreter\Keyword.h" />
-    <ClInclude Include="src\Interpreter\Calculator\Calculator.h" />
     <ClInclude Include="src\Interpreter\Core\Application.h" />
     <ClInclude Include="src\Interpreter\Core\Logger.h" />
     <ClInclude Include="src\Interpreter\Core\VariableHolder.h" />
     <ClInclude Include="src\Interpreter\Interpreter.h" />
-    <ClInclude Include="src\Interpreter\Calculator\Token.h" />
     <ClInclude Include="src\pch.h" />
     <ClInclude Include="src\Interpreter\Variable.h" />
   </ItemGroup>

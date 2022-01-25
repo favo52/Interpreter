@@ -13,13 +13,7 @@ namespace Interpreter
 	class Variable
 	{
 	public:
-		Variable() = default;
-		virtual ~Variable() = default;
-
 		static bool IsVariable(const std::string& word);
-
-		static void InterpretVariable(VariableType varType, std::string expression);
-
 		static VariableType GetVariableType(const std::string& word);
 
 	private:
