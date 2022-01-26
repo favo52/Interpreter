@@ -24,7 +24,8 @@ namespace Interpreter
 		else if (Variable::IsVariable(word) && !Keyword::IsKeyword(word))
 		{
 			VariableType varType = Variable::GetVariableType(word);
-
+			
+			std::string firstWord{ word };
 			iss >> word;
 			if (word != "=") ERROR("Did you forget the assignment '=' for the variable?");
 
@@ -35,7 +36,16 @@ namespace Interpreter
 			std::string expression = GetExpression(iss);
 			ValidateAssignment(varType, expression);
 
-			std::cout << '\n';
+			// Deal with special case String
+			if (varType == VariableType::String)
+			{
+				ReadWord(firstWord);
+				ReadWord(expression);
+				return;
+			}
+
+			// Integers and Reals
+			//std::cout << '\n';
 			std::istringstream stream{ expression };
 			for (std::string w; stream >> w;)
 				ReadWord(w);
@@ -56,7 +66,10 @@ namespace Interpreter
 	{
 		WordType wordType = GetWordType(word);
 		if (wordType != WordType::Invalid)
-			LOG_INFO("'{0}' is a valid word!", word);
+		{
+			std::cout << '\n';
+			LOG_INFO("'{0}' is valid!", word);
+		}
 
 		switch (wordType)
 		{
@@ -96,7 +109,7 @@ namespace Interpreter
 			}
 
 			case WordType::Invalid:
-				LOG_ERROR("'{0}' is an invalid word!", word);
+				LOG_ERROR("'{0}' is invalid!", word);
 				break;
 
 			default:
@@ -216,7 +229,7 @@ namespace Interpreter
 
 			case VariableType::String:
 			{
-				if (!IsString(word))
+				if (!IsString(expression))
 					ERROR("Invalid assignment to <string> variable.");
 				break;
 			}
@@ -238,7 +251,7 @@ namespace Interpreter
 				// Grab next word
 				iss >> word;
 				if (Operator::IsOperator(word))
-					ERROR(std::string("Was expecting a Number or Variable but found '" + word + "'. Did you write two operators in a row ? ").c_str());
+					ERROR(std::string("Was expecting a Number or Variable but found '" + word + "'.\nDid you write two operators in a row ? ").c_str());
 			}
 		}
 	}

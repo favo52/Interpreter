@@ -63,7 +63,6 @@ namespace Interpreter
 
 			case KeywordType::Read:
 			{
-
 				LOG_TRACE("<read statement>");
 				break;
 			}
@@ -76,6 +75,13 @@ namespace Interpreter
 
 			case KeywordType::End:
 			{
+				if (!expression.empty())
+				{
+					LOG_ERROR("Error, END. is not alone.");
+					return;
+				}
+
+				LOG_TRACE("<end statement>");
 				break;
 			}
 
