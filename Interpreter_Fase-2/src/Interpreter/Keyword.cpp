@@ -47,6 +47,7 @@ namespace Interpreter
 		{
 			case KeywordType::Comment:
 			{
+				LOG_INFO("Is a comment. '{0}'", expression);
 				break;
 			}
 
@@ -72,6 +73,8 @@ namespace Interpreter
 
 			case KeywordType::End:
 			{
+				if (!expression.empty())
+					LOG_INFO("Is an <end statement> '{0}'", expression);
 				break;
 			}
 

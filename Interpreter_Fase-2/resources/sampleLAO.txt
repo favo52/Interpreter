@@ -13,6 +13,9 @@ print
 print
 if c .eq. 4 then a = c .add. 3 .div. 3
 n = 3.0 .add. 2 .mul. c
+
+n = 3.0 .add. .div. 3
+
 print "n = "
 print n
 print

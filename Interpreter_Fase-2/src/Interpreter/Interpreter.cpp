@@ -7,11 +7,9 @@ namespace Interpreter
 {
 	void Interpreter::InterpretLine(const std::string& line)
 	{
-		m_Line = line;
-
 		std::istringstream iss{ line };
 		std::string word{};
-		iss >> word; 
+		iss >> word;
 
 		if (Keyword::IsKeyword(word))
 		{
@@ -20,7 +18,7 @@ namespace Interpreter
 
 			std::string expression = GetExpression(iss);
 			Keyword::ValidateKeyword(keywordType, expression);
-
+			
 			//PrintLine();
 		}
 		else if (Variable::IsVariable(word) && !Keyword::IsKeyword(word))
@@ -163,16 +161,22 @@ namespace Interpreter
 
 	bool Interpreter::IsReal(std::string word)
 	{
-		try
+		for (const char& c : word)
 		{
-			size_t lastChar{ 0 };
-			m_RealValue = std::stod(word, &lastChar);
+			if (c == '.')
+			{
+				try
+				{
+					size_t lastChar{ 0 };
+					m_RealValue = std::stod(word, &lastChar);
 
-			return lastChar == word.size();
-		}
-		catch (...)
-		{
-			return false;
+					return lastChar == word.size();
+				}
+				catch (...)
+				{
+					return false;
+				}
+			}
 		}
 
 		return false;
@@ -192,6 +196,8 @@ namespace Interpreter
 		std::string word{};
 		std::istringstream iss{ expression };
 		iss >> word;
+
+		// Verify that it is a valid assignment
 		switch (varType)
 		{
 			case VariableType::Integer:
@@ -213,6 +219,26 @@ namespace Interpreter
 				if (!IsString(word))
 					ERROR("Invalid assignment to <string> variable.");
 				break;
+			}
+		}
+		
+		// Verify arithmetic expressions
+
+		// Grab words until iss is empty
+		while (iss >> word)
+		{
+			if (Operator::IsOperator(word))
+			{
+				OperatorType op = Operator::GetOperator(word);
+				if (Operator::IsLogical(op))
+					ERROR(std::string("Used logical operator '" + word + "' in an assignment statement!").c_str());
+				if (Operator::IsRelational(op))
+					ERROR(std::string("Used relational operator '" + word + "' in an assignment statement!").c_str());
+
+				// Grab next word
+				iss >> word;
+				if (Operator::IsOperator(word))
+					ERROR(std::string("Was expecting a Number or Variable but found '" + word + "'. Did you write two operators in a row ? ").c_str());
 			}
 		}
 	}
@@ -322,6 +348,7 @@ namespace Interpreter
 	{
 		std::string expression{};
 		std::getline(iss, expression);
+		
 		if (expression.front() == ' ')
 			expression.erase(expression.begin()); // erase front
 

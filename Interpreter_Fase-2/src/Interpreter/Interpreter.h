@@ -52,5 +52,7 @@ namespace Interpreter
 		int m_IntValue{ 0 };
 		double m_RealValue{ 0.0 };
 		bool m_IsExponential{ false };
+
+		bool m_IsOperatorFound{ false };
 	};
 }
