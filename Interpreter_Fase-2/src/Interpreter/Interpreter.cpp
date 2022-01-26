@@ -45,7 +45,6 @@ namespace Interpreter
 			}
 
 			// Integers and Reals
-			//std::cout << '\n';
 			std::istringstream stream{ expression };
 			for (std::string w; stream >> w;)
 				ReadWord(w);
@@ -216,12 +215,46 @@ namespace Interpreter
 
 			case KeywordType::If:
 			{
+				LOG_INFO("<if statement> '{0}'", expression);
+
+				std::string tempStr{ expression };
+				for (char& c : tempStr) c = std::tolower(c);
+				size_t found = expression.find("then");
+				if (found == std::string::npos)
+				{
+					ERROR("Did you forget the 'then' keyword?");
+				}
+				else
+				{
+					std::istringstream iss{ expression };
+					std::string conditionalExpression;
+					for (std::string tempWord; iss >> tempWord;)
+					{
+						if (Keyword::GetKeyword(tempWord) == KeywordType::Then)
+							break;
+
+						conditionalExpression += tempWord + ' ';
+					}
+					conditionalExpression.pop_back(); // Pop the last whitespace
+
+					LOG_TRACE("Conditional expression: '{0}'", conditionalExpression);
+
+					std::string thenStatement{ iss.str() };
+					ValidateKeyword(KeywordType::Then, thenStatement);
+				}
 
 				break;
 			}
 
 			case KeywordType::Then:
 			{
+				LOG_TRACE("then statement: '{0}'", expression);
+
+				std::istringstream iss{ expression };
+				std::string firstWord{};
+				iss >> firstWord;
+
+				ValidateAssignment(Variable::GetVariableType(firstWord), expression);
 				break;
 			}
 
