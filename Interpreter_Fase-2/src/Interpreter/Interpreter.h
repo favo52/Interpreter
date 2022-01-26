@@ -33,6 +33,7 @@ namespace Interpreter
 		bool IsExponential(std::string word);
 
 		// Validation
+		void ValidateKeyword(KeywordType keywordType, std::string expression);
 		void ValidateAssignment(VariableType varType, std::string expression);
 
 		// Print messages
@@ -54,5 +55,7 @@ namespace Interpreter
 		bool m_IsExponential{ false };
 
 		bool m_IsOperatorFound{ false };
+
+		friend class Keyword;
 	};
 }

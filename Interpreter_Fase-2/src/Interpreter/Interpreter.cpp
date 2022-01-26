@@ -17,7 +17,7 @@ namespace Interpreter
 			KeywordType keywordType = Keyword::GetKeyword(word);
 
 			std::string expression = GetExpression(iss);
-			Keyword::ValidateKeyword(keywordType, expression);
+			ValidateKeyword(keywordType, expression);
 			
 			//PrintLine();
 		}
@@ -202,6 +202,101 @@ namespace Interpreter
 				return true;
 
 		return false;
+	}
+
+	void Interpreter::ValidateKeyword(KeywordType keywordType, std::string expression)
+	{
+		switch (keywordType)
+		{
+			case KeywordType::Comment:
+			{
+				LOG_INFO("<comment statement> '{0}'", expression);
+				break;
+			}
+
+			case KeywordType::If:
+			{
+
+				break;
+			}
+
+			case KeywordType::Then:
+			{
+				break;
+			}
+
+			case KeywordType::Read:
+			{
+				if (!Variable::IsVariable(expression))
+				{
+					LOG_ERROR("'{0}' is not a variable!", expression);
+					return;
+				}
+
+				LOG_INFO("Variable <read statement>");
+				break;
+			}
+
+			case KeywordType::Print:
+			{
+				if (!expression.empty())
+				{
+					if (Variable::IsVariable(expression))
+					{
+						for (char c : expression)
+						{
+							if (std::isdigit((char)c))
+							{
+								LOG_ERROR("'{0}' Variable names can not have any digits!", expression);
+								return;
+							}
+						}
+
+						LOG_INFO("Variable <print statement> '{0}'", expression);
+						return;
+					}
+
+					if (IsNumber(expression))
+					{
+						LOG_INFO("Number <print statement> '{0}'", expression);
+						return;
+					}
+
+					if (IsString(expression))
+					{
+						LOG_INFO("String <print statement> '{0}'", expression);
+						return;
+					}
+
+					ReadWord(expression);
+
+				}
+				else
+				{
+					LOG_INFO("Newline <print statement>");
+				}
+
+				break;
+			}
+
+			case KeywordType::End:
+			{
+				if (!expression.empty())
+				{
+					LOG_TRACE("<end statement>");
+					LOG_ERROR("'{0}' not executed.", expression);
+					return;
+				}
+
+				LOG_TRACE("<end statement>");
+				break;
+			}
+
+			case KeywordType::Invalid: LOG_ERROR("Invalid Keyword Type"); break;
+
+			default:
+				LOG_ERROR("Unknown KeywordType!"); break;
+		}
 	}
 
 	void Interpreter::ValidateAssignment(VariableType varType, std::string expression)
