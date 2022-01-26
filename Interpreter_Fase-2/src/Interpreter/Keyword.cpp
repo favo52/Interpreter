@@ -47,6 +47,7 @@ namespace Interpreter
 		{
 			case KeywordType::Comment:
 			{
+				LOG_INFO("<comment statement> '{0}'", expression);
 				break;
 			}
 
@@ -62,16 +63,26 @@ namespace Interpreter
 
 			case KeywordType::Read:
 			{
+
+				LOG_TRACE("<read statement>");
 				break;
 			}
 
 			case KeywordType::Print:
 			{
+				LOG_TRACE("<print statement>'{0}'", expression);
 				break;
 			}
 
 			case KeywordType::End:
 			{
+				if (!expression.empty())
+				{
+					LOG_ERROR("Error, END. is not alone.");
+					return;
+				}
+
+				LOG_TRACE("<end statement>");
 				break;
 			}
 
