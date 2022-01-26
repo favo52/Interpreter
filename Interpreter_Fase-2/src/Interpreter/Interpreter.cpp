@@ -348,8 +348,7 @@ namespace Interpreter
 	{
 		std::string expression{};
 		std::getline(iss, expression);
-		
-		if (expression.front() == ' ')
+		if (!expression.empty() && expression.front() == ' ')
 			expression.erase(expression.begin()); // erase front
 
 		return expression;
