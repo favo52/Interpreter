@@ -248,6 +248,8 @@ namespace Interpreter
 
 			case KeywordType::Then:
 			{
+				//ERROR("Did you forget the 'If' keyword?"); // should we prevent the user from only usuing Then?
+
 				LOG_TRACE("then statement: '{0}'", expression);
 
 				std::istringstream iss{ expression };
