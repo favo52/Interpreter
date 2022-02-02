@@ -7,7 +7,8 @@ namespace Interpreter
 
 	Application* Application::s_Instance{ nullptr };
 
-	Application::Application()
+	Application::Application() :
+		m_IsRunning{ true }
 	{
 		assert(!s_Instance);
 		s_Instance = this;
@@ -30,7 +31,7 @@ namespace Interpreter
 
 			if (filepath.empty()) continue;
 			if (filepath == QUIT) { LOG_INFO("Quitting..."); return; };
-			if (!m_Interpreter.LoadFile(filepath)) continue;
+			if (!m_Interpreter.OpenFile(filepath)) continue;
 
 			std::cout << '\n';
 			LOG_INFO("Program start");
@@ -44,6 +45,8 @@ namespace Interpreter
 		catch (std::exception& e)
 		{
 			LOG_ERROR("ERROR: {0}", e.what());
+			m_Interpreter.CloseFile();
+			m_Interpreter.Reset();
 			ClearInput();
 		}
 	}

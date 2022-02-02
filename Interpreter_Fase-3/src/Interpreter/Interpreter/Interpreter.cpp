@@ -5,26 +5,36 @@
 
 namespace Interpreter
 {
-	void Interpreter::ReadFile()
+	Interpreter::Interpreter() :
+		m_LineNumber { 1 },
+		m_IntValue{ 0 },
+		m_RealValue{ 0.0 },
+		m_IsExponential{ false },
+		m_IsOperatorFound{ false }
 	{
-		// Traverse the file line by line
-		while (std::getline(m_iFileStream, m_Line))
-		{
-
-		}
 	}
 
-	bool Interpreter::LoadFile(const std::string& filepath)
+	bool Interpreter::OpenFile(const std::string& filepath)
 	{
 		m_iFileStream.open(filepath);
 		if (!m_iFileStream)
 		{
-			LOG_ERROR("Unable to open file \"{0}\".", filepath);
+			LOG_ERROR("Unable to open file: \"{0}\"", filepath);
 			return false;
 		}
 
 		LOG_INFO("\"{0}\" opened successfully.", filepath);
 		return true;
+	}
+
+	void Interpreter::ReadFile()
+	{
+		// Traverse the file line by line
+		while (std::getline(m_iFileStream, m_Line))
+		{
+			InterpretLine(m_Line);
+			m_LineNumber++;
+		}
 	}
 
 	void Interpreter::InterpretLine(const std::string& line)
@@ -33,51 +43,58 @@ namespace Interpreter
 		std::string word{};
 		iss >> word;
 
-		if (Keyword::IsKeyword(word))
+		WordType wordType = GetWordType(word);
+		switch (wordType)
 		{
-			LOG_TRACE("Keyword");
-			KeywordType keywordType = Keyword::GetKeyword(word);
-
-			std::string expression = GetExpression(iss);
-			ValidateKeyword(keywordType, expression);
-		}
-		else if (Variable::IsVariable(word) && !Keyword::IsKeyword(word))
-		{
-			VariableType varType = Variable::GetVariableType(word);
-
-			std::string firstWord{ word };
-			iss >> word;
-			if (word != "=") ERROR("Did you forget the assignment '=' for the variable?");
-
-			std::cout << '\n';
-			LOG_TRACE("<assignment statement>");
-
-			// Grab the expression after the '='
-			std::string expression = GetExpression(iss);
-			ValidateAssignment(varType, expression);
-
-			// Deal with special case String
-			if (varType == VariableType::String)
+			case WordType::Keyword:
 			{
-				//ReadWord(firstWord);
-				//ReadWord(expression);
-				return;
+				// Get keyword type
+				KeywordType keywordType = Keyword::GetKeyword(word);
+
+				std::string expression = GetExpression(iss);
+				ValidateKeyword(keywordType, expression);
+				break;
 			}
 
-			// Integers and Reals
-			//std::istringstream stream{ expression };
-			//for (std::string w; stream >> w;)
-				//ReadWord(w);
-		}
-		else
-		{
-			if (IsNumber(word))
-				ERROR("A Number is not a valid instruction!");
+			case WordType::Variable:
+			{
+				VariableType varType = Variable::GetVariableType(word);
 
-			if (IsString(word))
-				ERROR("A String is not a valid instruction!");
+				std::string firstWord{ word };
+				iss >> word;
+				if (word != "=")
+				{
+					LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
+					ERROR("Did you forget the assignment '=' for the variable?");
+				}
 
-			//ReadWord(word);
+				// Grab the expression after the '='
+				std::string expression = GetExpression(iss);
+				ValidateAssignment(varType, expression);
+				//MakeAssignment();
+				break;
+			}
+
+			case WordType::Operator:
+				LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
+				ERROR("'" + word + "' An operator is not a valid instruction!");
+				break;
+
+			case WordType::Number:
+				LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
+				ERROR("'" + word + "' A Number is not a valid instruction!");
+				break;
+
+			case WordType::String:
+				LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
+				ERROR("'" + word + "' A String is not a valid instruction!");
+				break;
+
+			case WordType::Invalid:
+			default:
+				LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
+				ERROR("'" + word + "' is not supported!");
+				break;
 		}
 	}
 
@@ -115,7 +132,10 @@ namespace Interpreter
 		if (word.front() == '\"')
 		{
 			if (word.back() != '\"' || word.size() < 2)
+			{
+				LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
 				ERROR("String is missing ending quotation marks!");
+			}
 
 			return true;
 		}
@@ -175,177 +195,171 @@ namespace Interpreter
 	{
 		switch (keywordType)
 		{
-		case KeywordType::Comment:
-		{
-			LOG_INFO("<comment statement> '{0}'", expression);
-			break;
-		}
-
-		case KeywordType::If:
-		{
-			LOG_INFO("<if statement> '{0}'", expression);
-
-			std::string tempStr{ expression };
-			for (char& c : tempStr) c = std::tolower(c);
-			size_t found = tempStr.find("then");
-			if (found == std::string::npos)
+			case KeywordType::Comment:
 			{
-				ERROR("Did you forget the 'then' keyword?");
+				
+				break;
 			}
-			else
+
+			case KeywordType::If:
 			{
-				std::istringstream iss{ expression };
-				std::string conditionalExpression;
-				for (std::string tempWord; iss >> tempWord;)
-				{
-					if (Keyword::GetKeyword(tempWord) == KeywordType::Then)
-						break;
+				LOG_INFO("<if statement> '{0}'", expression);
 
-					conditionalExpression += tempWord + ' ';
+				std::string tempStr{ expression };
+				for (char& c : tempStr) c = std::tolower(c);
+				size_t found = tempStr.find("then");
+				if (found == std::string::npos)
+				{
+					ERROR("Did you forget the 'then' keyword?");
 				}
-				conditionalExpression.pop_back(); // Pop the last whitespace
-
-				LOG_TRACE("Conditional expression: '{0}'", conditionalExpression);
-
-				// Guard against double operators
-				std::istringstream cond{ conditionalExpression };
-				for (std::string s; cond >> s;)
+				else
 				{
-					if (Operator::IsOperator(s))
+					std::istringstream iss{ expression };
+					std::string conditionalExpression;
+					for (std::string tempWord; iss >> tempWord;)
 					{
-						cond >> s;
-						if (Operator::IsOperator(s))
-							ERROR("Did you write 2 operators in a row?");
+						if (Keyword::GetKeyword(tempWord) == KeywordType::Then)
+							break;
+
+						conditionalExpression += tempWord + ' ';
 					}
-				}
+					conditionalExpression.pop_back(); // Pop the last whitespace
 
-				std::string thenStatement{};
-				for (std::string tempWord; iss >> tempWord;)
-					thenStatement += tempWord + ' ';
-				thenStatement.pop_back();
+					LOG_TRACE("Conditional expression: '{0}'", conditionalExpression);
 
-				ValidateKeyword(KeywordType::Then, thenStatement);
-			}
-
-			break;
-		}
-
-		case KeywordType::Then:
-		{
-			LOG_TRACE("then statement: '{0}'", expression);
-
-			std::istringstream iss{ expression };
-			std::string firstWord{};
-			iss >> firstWord;
-
-			if (Keyword::IsKeyword(firstWord))
-			{
-				KeywordType type = Keyword::GetKeyword(firstWord);
-				if (type == KeywordType::Print)
-				{
-					std::string expr = GetExpression(iss);
-					ValidateKeyword(type, expr);
-					return;
-				}
-				else if (type == KeywordType::Read)
-				{
-					std::string expr = GetExpression(iss);
-					ValidateKeyword(type, expr);
-					return;
-				}
-			}
-			else
-			{
-				std::string str{};
-				iss >> str;
-				if (str != "=") ERROR("Did you forget the assignment '=' for the variable?");
-
-				// Grab the expression after the '='
-				std::string expr = GetExpression(iss);
-
-				ValidateAssignment(Variable::GetVariableType(firstWord), expr);
-			}
-
-			break;
-		}
-
-		case KeywordType::Read:
-		{
-			if (!Variable::IsVariable(expression))
-			{
-				LOG_ERROR("ERROR: '{0}' is not a variable!", expression);
-				return;
-			}
-
-			LOG_INFO("Variable <read statement>");
-			break;
-		}
-
-		case KeywordType::Print:
-		{
-			if (!expression.empty())
-			{
-				if (Variable::IsVariable(expression))
-				{
-					for (char c : expression)
+					// Guard against double operators
+					std::istringstream cond{ conditionalExpression };
+					for (std::string s; cond >> s;)
 					{
-						if (std::isdigit((char)c))
+						if (Operator::IsOperator(s))
 						{
-							LOG_ERROR("'{0}' Variable names can not have any digits!", expression);
-							return;
+							cond >> s;
+							if (Operator::IsOperator(s))
+								ERROR("Did you write 2 operators in a row?");
 						}
 					}
 
-					if (Keyword::IsKeyword(expression))
+					std::string thenStatement{};
+					for (std::string tempWord; iss >> tempWord;)
+						thenStatement += tempWord + ' ';
+					thenStatement.pop_back();
+
+					ValidateKeyword(KeywordType::Then, thenStatement);
+				}
+
+				break;
+			}
+
+			case KeywordType::Then:
+			{
+				LOG_TRACE("then statement: '{0}'", expression);
+
+				std::istringstream iss{ expression };
+				std::string firstWord{};
+				iss >> firstWord;
+
+				if (Keyword::IsKeyword(firstWord))
+				{
+					KeywordType type = Keyword::GetKeyword(firstWord);
+					if (type == KeywordType::Print)
 					{
-						ERROR("Invalid print statement! Can't print a keyword!");
+						std::string expr = GetExpression(iss);
+						ValidateKeyword(type, expr);
+						return;
+					}
+					else if (type == KeywordType::Read)
+					{
+						std::string expr = GetExpression(iss);
+						ValidateKeyword(type, expr);
+						return;
+					}
+				}
+				else
+				{
+					std::string str{};
+					iss >> str;
+					if (str != "=") ERROR("Did you forget the assignment '=' for the variable?");
+
+					// Grab the expression after the '='
+					std::string expr = GetExpression(iss);
+
+					ValidateAssignment(Variable::GetVariableType(firstWord), expr);
+				}
+
+				break;
+			}
+
+			case KeywordType::Read:
+			{
+
+				break;
+			}
+
+			case KeywordType::Print:
+			{
+				if (!expression.empty())
+				{
+					if (Variable::IsVariable(expression))
+					{
+						for (char c : expression)
+						{
+							if (std::isdigit((char)c))
+							{
+								LOG_ERROR("'{0}' Variable names can not have any digits!", expression);
+								return;
+							}
+						}
+
+						if (Keyword::IsKeyword(expression))
+						{
+							ERROR("Invalid print statement! Can't print a keyword!");
+						}
+
+						LOG_INFO("Variable <print statement> '{0}'", expression);
+						return;
 					}
 
-					LOG_INFO("Variable <print statement> '{0}'", expression);
-					return;
-				}
+					if (IsNumber(expression))
+					{
+						LOG_INFO("Number <print statement> '{0}'", expression);
+						return;
+					}
 
-				if (IsNumber(expression))
+					if (IsString(expression))
+					{
+						LOG_INFO("String <print statement> '{0}'", expression);
+						return;
+					}
+
+					//ReadWord(expression);
+
+				}
+				else
 				{
-					LOG_INFO("Number <print statement> '{0}'", expression);
-					return;
+					LOG_INFO("Newline <print statement>");
 				}
 
-				if (IsString(expression))
+				break;
+			}
+
+			case KeywordType::End:
+			{
+				if (!expression.empty())
 				{
-					LOG_INFO("String <print statement> '{0}'", expression);
+					LOG_TRACE("<end statement>");
+					LOG_ERROR("'{0}' not executed.", expression);
 					return;
 				}
 
-				//ReadWord(expression);
-
-			}
-			else
-			{
-				LOG_INFO("Newline <print statement>");
-			}
-
-			break;
-		}
-
-		case KeywordType::End:
-		{
-			if (!expression.empty())
-			{
 				LOG_TRACE("<end statement>");
-				LOG_ERROR("'{0}' not executed.", expression);
-				return;
+				break;
 			}
 
-			LOG_TRACE("<end statement>");
-			break;
-		}
+			case KeywordType::Invalid: LOG_ERROR("Invalid Keyword Type"); break;
 
-		case KeywordType::Invalid: LOG_ERROR("Invalid Keyword Type"); break;
-
-		default:
-			LOG_ERROR("Unknown KeywordType!"); break;
-		}
+			default:
+				LOG_ERROR("Unknown KeywordType!"); break;
+			}
 	}
 
 	void Interpreter::ValidateAssignment(VariableType varType, std::string expression)
@@ -357,26 +371,35 @@ namespace Interpreter
 		// Verify that it is a valid assignment
 		switch (varType)
 		{
-		case VariableType::Integer:
-		{
-			if (!IsInteger(word) || IsReal(word))
-				ERROR("Invalid assignment to <integer> variable.");
-			break;
-		}
+			case VariableType::Integer:
+			{
+				if (!IsInteger(word) || IsReal(word))
+				{
+					LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
+					ERROR("Invalid assignment to <integer> variable.");
+				}
+				break;
+			}
 
-		case VariableType::Real:
-		{
-			if (!IsReal(word) || IsInteger(word))
-				ERROR("Invalid assignment to <real> variable.");
-			break;
-		}
+			case VariableType::Real:
+			{
+				if (!IsReal(word) || IsInteger(word))
+				{
+					LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
+					ERROR("Invalid assignment to <real> variable.");
+				}
+				break;
+			}
 
-		case VariableType::String:
-		{
-			if (!IsString(expression))
-				ERROR("Invalid assignment to <string> variable.");
-			break;
-		}
+			case VariableType::String:
+			{
+				if (!IsString(expression))
+				{
+					LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
+					ERROR("Invalid assignment to <string> variable.");
+				}
+				break;
+			}
 		}
 
 		// Verify arithmetic expressions
@@ -388,14 +411,23 @@ namespace Interpreter
 			{
 				OperatorType op = Operator::GetOperator(word);
 				if (Operator::IsLogical(op))
+				{
+					LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
 					ERROR(std::string("Used logical operator '" + word + "' in an assignment statement!").c_str());
+				}
 				if (Operator::IsRelational(op))
+				{
+					LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
 					ERROR(std::string("Used relational operator '" + word + "' in an assignment statement!").c_str());
+				}
 
 				// Grab next word
 				iss >> word;
 				if (Operator::IsOperator(word))
+				{
+					LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
 					ERROR(std::string("Was expecting a Number or Variable but found '" + word + "'.\nDid you write two operators in a row? ").c_str());
+				}
 			}
 		}
 	}
@@ -416,7 +448,7 @@ namespace Interpreter
 		std::string expression{};
 		std::getline(iss, expression);
 		if (!expression.empty() && expression.front() == ' ')
-			expression.erase(expression.begin()); // erase front
+			expression.erase(expression.begin()); // erase front whitespace
 
 		return expression;
 	}

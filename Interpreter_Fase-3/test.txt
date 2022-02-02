@@ -1,0 +1,7 @@
+w = 5
+w = "Dsad
+w = "Hola"
+&%$
+.and.
+5
+"test"

@@ -19,7 +19,7 @@ namespace Interpreter
 		static Application& Get() { return *s_Instance; }
 
 	private:
-		bool m_IsRunning{ true };
+		bool m_IsRunning;
 		Interpreter m_Interpreter;
 
 		static Application* s_Instance; // pointer to this

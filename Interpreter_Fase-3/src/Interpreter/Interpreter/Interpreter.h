@@ -15,16 +15,13 @@ namespace Interpreter
 	class Interpreter
 	{
 	public:
-		Interpreter() = default;
+		Interpreter();
 		virtual ~Interpreter() = default;
 
-		// File management
-		void ReadFile();
-
-		bool LoadFile(const std::string& filepath);
+		bool OpenFile(const std::string& filepath);
 		void CloseFile() { m_iFileStream.close(); }
 
-		//void ReadWord(std::string word);
+		void ReadFile();
 		void InterpretLine(const std::string& line);
 
 		void Reset();
@@ -50,13 +47,13 @@ namespace Interpreter
 	private:
 		std::ifstream m_iFileStream;
 		std::string m_Line;
-		int m_LineNumber{ 1 };
+		int m_LineNumber;
 
-		int m_IntValue{ 0 };
-		double m_RealValue{ 0.0 };
-		bool m_IsExponential{ false };
+		int m_IntValue;
+		double m_RealValue;
+		bool m_IsExponential;
 
-		bool m_IsOperatorFound{ false };
+		bool m_IsOperatorFound;
 
 		friend class Keyword;
 	};
