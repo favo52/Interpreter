@@ -219,7 +219,7 @@ namespace Interpreter
 
 				std::string tempStr{ expression };
 				for (char& c : tempStr) c = std::tolower(c);
-				size_t found = expression.find("then");
+				size_t found = tempStr.find("then");
 				if (found == std::string::npos)
 				{
 					ERROR("Did you forget the 'then' keyword?");
@@ -239,7 +239,23 @@ namespace Interpreter
 
 					LOG_TRACE("Conditional expression: '{0}'", conditionalExpression);
 
-					std::string thenStatement{ iss.str() };
+					// Guard against double operators
+					std::istringstream cond{ conditionalExpression };
+					for (std::string s; cond >> s;)
+					{
+						if (Operator::IsOperator(s))
+						{
+							cond >> s;
+							if (Operator::IsOperator(s))
+								ERROR("Did you write 2 operators in a row?");
+						}
+					}
+
+					std::string thenStatement{};
+					for (std::string tempWord; iss >> tempWord;)
+						thenStatement += tempWord + ' ';
+					thenStatement.pop_back();
+
 					ValidateKeyword(KeywordType::Then, thenStatement);
 				}
 
@@ -256,7 +272,34 @@ namespace Interpreter
 				std::string firstWord{};
 				iss >> firstWord;
 
-				ValidateAssignment(Variable::GetVariableType(firstWord), expression);
+				if (Keyword::IsKeyword(firstWord))
+				{
+					KeywordType type = Keyword::GetKeyword(firstWord);
+					if (type == KeywordType::Print)
+					{
+						std::string expr = GetExpression(iss);
+						ValidateKeyword(type, expr);
+						return;
+					}
+					else if (type == KeywordType::Read)
+					{
+						std::string expr = GetExpression(iss);
+						ValidateKeyword(type, expr);
+						return;
+					}
+				}
+				else
+				{
+					std::string str{};
+					iss >> str;
+					if (str != "=") ERROR("Did you forget the assignment '=' for the variable?");
+
+					// Grab the expression after the '='
+					std::string expr = GetExpression(iss);
+
+					ValidateAssignment(Variable::GetVariableType(firstWord), expr);
+				}
+				
 				break;
 			}
 
@@ -381,7 +424,7 @@ namespace Interpreter
 				// Grab next word
 				iss >> word;
 				if (Operator::IsOperator(word))
-					ERROR(std::string("Was expecting a Number or Variable but found '" + word + "'.\nDid you write two operators in a row ? ").c_str());
+					ERROR(std::string("Was expecting a Number or Variable but found '" + word + "'.\nDid you write two operators in a row? ").c_str());
 			}
 		}
 	}
