@@ -24,7 +24,7 @@ namespace Interpreter
 		bool LoadFile(const std::string& filepath);
 		void CloseFile() { m_iFileStream.close(); }
 
-		void ReadWord(std::string word);
+		//void ReadWord(std::string word);
 		void InterpretLine(const std::string& line);
 
 		void Reset();

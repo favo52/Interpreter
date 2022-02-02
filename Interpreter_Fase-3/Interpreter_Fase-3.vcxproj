@@ -163,12 +163,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Interpreter\Interpreter\Operator.cpp" />
+    <ClCompile Include="src\Interpreter\Interpreter\Keyword.cpp" />
     <ClCompile Include="src\Interpreter\Calculator\Calculator.cpp" />
     <ClCompile Include="src\Interpreter\Calculator\Token.cpp" />
     <ClCompile Include="src\Interpreter\Core\Application.cpp" />
     <ClCompile Include="src\Interpreter\Core\Logger.cpp" />
     <ClCompile Include="src\Interpreter\Core\Stack.cpp" />
-    <ClCompile Include="src\Interpreter\Interpreter.cpp" />
+    <ClCompile Include="src\Interpreter\Interpreter\Interpreter.cpp" />
     <ClCompile Include="src\Interpreter\Main.cpp" />
     <ClCompile Include="src\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -180,16 +182,20 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch.h</PrecompiledHeaderFile>
     </ClCompile>
+    <ClCompile Include="src\Interpreter\Interpreter\Variable.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Interpreter\Interpreter\Operator.h" />
+    <ClInclude Include="src\Interpreter\Interpreter\Keyword.h" />
     <ClInclude Include="src\Interpreter\Calculator\Calculator.h" />
     <ClInclude Include="src\Interpreter\Calculator\Token.h" />
     <ClInclude Include="src\Interpreter\Core\Application.h" />
     <ClInclude Include="src\Interpreter\Core\Logger.h" />
     <ClInclude Include="src\Interpreter\Core\Stack.h" />
     <ClInclude Include="src\Interpreter\Core\VariableHolder.h" />
-    <ClInclude Include="src\Interpreter\Interpreter.h" />
+    <ClInclude Include="src\Interpreter\Interpreter\Interpreter.h" />
     <ClInclude Include="src\pch.h" />
+    <ClInclude Include="src\Interpreter\Interpreter\Variable.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

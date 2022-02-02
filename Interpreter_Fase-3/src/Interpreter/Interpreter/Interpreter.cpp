@@ -40,8 +40,6 @@ namespace Interpreter
 
 			std::string expression = GetExpression(iss);
 			ValidateKeyword(keywordType, expression);
-
-			//PrintLine();
 		}
 		else if (Variable::IsVariable(word) && !Keyword::IsKeyword(word))
 		{
@@ -61,15 +59,15 @@ namespace Interpreter
 			// Deal with special case String
 			if (varType == VariableType::String)
 			{
-				ReadWord(firstWord);
-				ReadWord(expression);
+				//ReadWord(firstWord);
+				//ReadWord(expression);
 				return;
 			}
 
 			// Integers and Reals
-			std::istringstream stream{ expression };
-			for (std::string w; stream >> w;)
-				ReadWord(w);
+			//std::istringstream stream{ expression };
+			//for (std::string w; stream >> w;)
+				//ReadWord(w);
 		}
 		else
 		{
@@ -79,7 +77,7 @@ namespace Interpreter
 			if (IsString(word))
 				ERROR("A String is not a valid instruction!");
 
-			ReadWord(word);
+			//ReadWord(word);
 		}
 	}
 
@@ -319,7 +317,7 @@ namespace Interpreter
 					return;
 				}
 
-				ReadWord(expression);
+				//ReadWord(expression);
 
 			}
 			else
