@@ -307,7 +307,7 @@ namespace Interpreter
 			{
 				if (!Variable::IsVariable(expression))
 				{
-					LOG_ERROR("'{0}' is not a variable!", expression);
+					LOG_ERROR("ERROR: '{0}' is not a variable!", expression);
 					return;
 				}
 
@@ -328,6 +328,11 @@ namespace Interpreter
 								LOG_ERROR("'{0}' Variable names can not have any digits!", expression);
 								return;
 							}
+						}
+
+						if (Keyword::IsKeyword(expression))
+						{
+							ERROR("Invalid print statement! Can't print a keyword!");
 						}
 
 						LOG_INFO("Variable <print statement> '{0}'", expression);
