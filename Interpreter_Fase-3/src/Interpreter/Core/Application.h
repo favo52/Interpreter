@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Interpreter/Interpreter.h"
+#include "Interpreter/Interpreter/Interpreter.h"
 
 namespace Interpreter
 {
@@ -13,11 +13,10 @@ namespace Interpreter
 		void Run();
 		void Quit() { m_IsRunning = false; }
 
-		static Application& Get() { return *s_Instance; }
-
-	private:
-		void ClearInput() { std::cin.clear(); }
 		void Error(const std::string& s) { throw std::runtime_error(s); }
+		void ClearInput() { std::cin.clear(); }
+
+		static Application& Get() { return *s_Instance; }
 
 	private:
 		bool m_IsRunning{ true };
@@ -25,4 +24,7 @@ namespace Interpreter
 
 		static Application* s_Instance; // pointer to this
 	};
+
+	// Disguises runtime_error
+	#define ERROR(...) Application::Get().Error(__VA_ARGS__)
 }
