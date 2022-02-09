@@ -16,7 +16,7 @@ namespace Interpreter
 		static bool IsVariable(const std::string& word);
 		static VariableType GetVariableType(const std::string& word);
 
-		static void Clear();
+		static void ClearAll();
 
 	private:
 		static IntegerHolder m_IntHolder;

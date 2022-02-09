@@ -46,7 +46,7 @@ namespace Interpreter
 		}
 	}
 
-	void Variable::Clear()
+	void Variable::ClearAll()
 	{
 		m_IntHolder.Clear();
 		m_RealHolder.Clear();

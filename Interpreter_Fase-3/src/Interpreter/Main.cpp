@@ -3,7 +3,7 @@
 #include "pch.h"
 #include "Core/Application.h"
 
-int main()
+int main(int argc, char** argv)
 {
 	try
 	{

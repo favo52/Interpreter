@@ -22,11 +22,12 @@ namespace Interpreter
 		void CloseFile() { m_iFileStream.close(); }
 
 		void ReadFile();
-		void InterpretLine(const std::string& line);
 
 		void Reset();
 
 	private:
+		void InterpretLine(const std::string& line);
+
 		// Word Types
 		bool IsNumber(const std::string& word);
 		bool IsString(const std::string& word);

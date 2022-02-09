@@ -19,17 +19,17 @@ namespace Interpreter
 		m_iFileStream.open(filepath);
 		if (!m_iFileStream)
 		{
-			LOG_ERROR("Unable to open file: \"{0}\"", filepath);
+			LOG_ERROR("Unable to open file: '{0}'", filepath);
 			return false;
 		}
 
-		LOG_INFO("\"{0}\" opened successfully.", filepath);
+		LOG_INFO("'{0}' opened successfully.", filepath);
 		return true;
 	}
 
 	void Interpreter::ReadFile()
 	{
-		// Traverse the file line by line
+		// Traverse the file line by line until the end
 		while (std::getline(m_iFileStream, m_Line))
 		{
 			InterpretLine(m_Line);
@@ -82,12 +82,12 @@ namespace Interpreter
 
 			case WordType::Number:
 				LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
-				ERROR("'" + word + "' A Number is not a valid instruction!");
+				ERROR("'" + word + "' A <number> is not a valid instruction!");
 				break;
 
 			case WordType::String:
 				LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
-				ERROR("'" + word + "' A String is not a valid instruction!");
+				ERROR("'" + word + "' A <string> is not a valid instruction!");
 				break;
 
 			case WordType::Invalid:
@@ -108,7 +108,7 @@ namespace Interpreter
 		m_RealValue = 0.0;
 		m_IsExponential = false;
 
-		Variable::Clear();
+		Variable::ClearAll();
 	}
 
 	bool Interpreter::IsNumber(const std::string& word)
