@@ -4,6 +4,9 @@
 #include "Operator.h"
 #include "Variable.h"
 
+#include "Interpreter/Core/VariableHolder.h"
+#include "Interpreter/Core/Stack.h"
+
 namespace Interpreter
 {
 	enum class WordType
@@ -43,6 +46,9 @@ namespace Interpreter
 
 		void MakeAssignment(VariableType varType, const std::string& variable, const std::string& expression);
 
+		void ClearHolders();
+		void ClearStacks();
+
 		// Getters
 		WordType GetWordType(std::string word);
 		std::string GetExpression(std::istringstream& iss);
@@ -57,6 +63,15 @@ namespace Interpreter
 		bool m_IsExponential;
 
 		bool m_IsOperatorFound;
+
+		// Variable holders
+		IntegerHolder m_IntHolder;
+		RealHolder m_RealHolder;
+		StringHolder m_StringHolder;
+
+		// Stacks for arithmetic operations
+		IntegerStack m_IntStack;
+		RealStack m_RealStack;
 
 		friend class Keyword;
 	};

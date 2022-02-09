@@ -1,7 +1,5 @@
 #pragma once
 
-#include "../Core/VariableHolder.h"
-
 namespace Interpreter
 {
 	enum class VariableType
@@ -16,13 +14,7 @@ namespace Interpreter
 		static bool IsVariable(const std::string& word);
 		static VariableType GetVariableType(const std::string& word);
 
-		static void ClearAll();
-
 	private:
-		static IntegerHolder m_IntHolder;
-		static RealHolder m_RealHolder;
-		static StringHolder m_StringHolder;
-
 		friend class Interpreter;
 	};
 }

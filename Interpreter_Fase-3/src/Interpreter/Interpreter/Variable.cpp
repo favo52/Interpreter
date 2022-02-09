@@ -3,10 +3,6 @@
 
 namespace Interpreter
 {
-	IntegerHolder Variable::m_IntHolder{};
-	RealHolder Variable::m_RealHolder{};
-	StringHolder Variable::m_StringHolder{};
-
 	bool Variable::IsVariable(const std::string& word)
 	{
 		for (const char& c : word)
@@ -44,12 +40,5 @@ namespace Interpreter
 			default:
 				return VariableType::Invalid;
 		}
-	}
-
-	void Variable::ClearAll()
-	{
-		m_IntHolder.Clear();
-		m_RealHolder.Clear();
-		m_StringHolder.Clear();
 	}
 }

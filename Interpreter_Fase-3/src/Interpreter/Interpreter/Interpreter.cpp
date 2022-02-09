@@ -117,11 +117,11 @@ namespace Interpreter
 		//Variable::m_IntHolder.InsertToMap(word, expression);
 
 		// b = 2
-		Variable::m_IntHolder.InsertToMap("b", 2);
+		m_IntHolder.InsertToMap("b", 2);
 
 		// c = a .add. b
-		int A = Variable::m_IntHolder.GetValue("a");
-		int b = Variable::m_IntHolder.GetValue("b");
+		int A = m_IntHolder.GetValue("a");
+		int b = m_IntHolder.GetValue("b");
 		//Variable::m_IntHolder.InsertToMap("c", a + b);
 
 		// c = a .add. b .div. 5 .sub. 2
@@ -145,7 +145,8 @@ namespace Interpreter
 		m_RealValue = 0.0;
 		m_IsExponential = false;
 
-		Variable::ClearAll();
+		ClearHolders();
+		ClearStacks();
 	}
 
 	bool Interpreter::IsNumber(const std::string& word)
@@ -508,6 +509,19 @@ namespace Interpreter
 				ERROR("Cannot assign " + expression + " to " + variable + "!");
 				break;
 		}
+	}
+
+	void Interpreter::ClearHolders()
+	{
+		m_IntHolder.Clear();
+		m_RealHolder.Clear();
+		m_StringHolder.Clear();
+	}
+
+	void Interpreter::ClearStacks()
+	{
+		m_IntStack.Clear();
+		m_RealStack.Clear();
 	}
 
 	WordType Interpreter::GetWordType(std::string word)

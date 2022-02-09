@@ -21,9 +21,6 @@
     <ClCompile Include="src\Interpreter\Core\Logger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Interpreter\Core\Stack.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Interpreter\Interpreter\Interpreter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -169,7 +169,6 @@
     <ClCompile Include="src\Interpreter\Calculator\Token.cpp" />
     <ClCompile Include="src\Interpreter\Core\Application.cpp" />
     <ClCompile Include="src\Interpreter\Core\Logger.cpp" />
-    <ClCompile Include="src\Interpreter\Core\Stack.cpp" />
     <ClCompile Include="src\Interpreter\Interpreter\Interpreter.cpp" />
     <ClCompile Include="src\Interpreter\Main.cpp" />
     <ClCompile Include="src\pch.cpp">
