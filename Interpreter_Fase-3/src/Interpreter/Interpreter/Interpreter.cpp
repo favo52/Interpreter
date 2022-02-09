@@ -32,6 +32,7 @@ namespace Interpreter
 		// Traverse the file line by line until the end
 		while (std::getline(m_iFileStream, m_Line))
 		{
+			// TODO: Stop if end keyword is found
 			InterpretLine(m_Line);
 			m_LineNumber++;
 		}
@@ -51,6 +52,7 @@ namespace Interpreter
 				// Get keyword type
 				KeywordType keywordType = Keyword::GetKeyword(word);
 
+				// Grab everything after the keyword
 				std::string expression = GetExpression(iss);
 				ValidateKeyword(keywordType, expression);
 				break;
@@ -60,7 +62,10 @@ namespace Interpreter
 			{
 				VariableType varType = Variable::GetVariableType(word);
 
-				std::string firstWord{ word };
+				// Save the variable name
+				std::string variableStr{ word };
+
+				// Make sure the assignment '=' is next in the line
 				iss >> word;
 				if (word != "=")
 				{
@@ -70,14 +75,18 @@ namespace Interpreter
 
 				// Grab the expression after the '='
 				std::string expression = GetExpression(iss);
+
+				// Make sure it's a valid assignment
 				ValidateAssignment(varType, expression);
-				//MakeAssignment();
+
+				// Store the variable and its value
+				MakeAssignment(varType, variableStr, expression);
 				break;
 			}
 
 			case WordType::Operator:
 				LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
-				ERROR("'" + word + "' An operator is not a valid instruction!");
+				ERROR("'" + word + "' An <operator> is not a valid instruction!");
 				break;
 
 			case WordType::Number:
@@ -96,6 +105,34 @@ namespace Interpreter
 				ERROR("'" + word + "' is not supported!");
 				break;
 		}
+
+		// GOAL:
+		/*
+		a = 2
+		b = 2
+		c = a .add. b
+		*/
+
+		// a = 2
+		//Variable::m_IntHolder.InsertToMap(word, expression);
+
+		// b = 2
+		Variable::m_IntHolder.InsertToMap("b", 2);
+
+		// c = a .add. b
+		int A = Variable::m_IntHolder.GetValue("a");
+		int b = Variable::m_IntHolder.GetValue("b");
+		//Variable::m_IntHolder.InsertToMap("c", a + b);
+
+		// c = a .add. b .div. 5 .sub. 2
+		//Variable::m_IntHolder.InsertToMap("c", a + b / 5 - 2);
+
+		// a + b / 5 - 2
+		//.add. +
+		//std::string infixExpr = { a };
+		//std::string postfixExptr = infixToPostfix(infixExpr);
+
+		//evaluate_postfix(stack, postfixExptr);
 	}
 
 	void Interpreter::Reset()
@@ -195,10 +232,10 @@ namespace Interpreter
 	{
 		switch (keywordType)
 		{
+			// REM this is a comment
 			case KeywordType::Comment:
 			{
-				
-				break;
+				return;
 			}
 
 			case KeywordType::If:
@@ -291,6 +328,11 @@ namespace Interpreter
 
 			case KeywordType::Read:
 			{
+				// Wait until input is entered
+
+				// Validate that expression is a variable
+
+				// Make assignment to variable
 
 				break;
 			}
@@ -412,11 +454,15 @@ namespace Interpreter
 				OperatorType op = Operator::GetOperator(word);
 				if (Operator::IsLogical(op))
 				{
+					// Error Example:
+					// a = 5 .and. 3
 					LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
 					ERROR(std::string("Used logical operator '" + word + "' in an assignment statement!").c_str());
 				}
 				if (Operator::IsRelational(op))
 				{
+					// Error Example:
+					// a = 5 .le. 3
 					LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
 					ERROR(std::string("Used relational operator '" + word + "' in an assignment statement!").c_str());
 				}
@@ -425,10 +471,42 @@ namespace Interpreter
 				iss >> word;
 				if (Operator::IsOperator(word))
 				{
+					// Error Example:
+					// a = 5 .add. .div. 5
 					LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
 					ERROR(std::string("Was expecting a Number or Variable but found '" + word + "'.\nDid you write two operators in a row? ").c_str());
 				}
 			}
+		}
+	}
+
+	void Interpreter::MakeAssignment(VariableType varType, const std::string& variable, const std::string& expression)
+	{
+		switch (varType)
+		{
+			case VariableType::Integer:
+			{
+
+			}
+			break;
+
+			case VariableType::Real:
+			{
+
+			}
+			break;
+
+			case VariableType::String:
+			{
+
+			}
+			break;
+
+			case VariableType::Invalid:
+			default:
+				LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
+				ERROR("Cannot assign " + expression + " to " + variable + "!");
+				break;
 		}
 	}
 

@@ -41,6 +41,8 @@ namespace Interpreter
 		void ValidateKeyword(KeywordType keywordType, std::string expression);
 		void ValidateAssignment(VariableType varType, std::string expression);
 
+		void MakeAssignment(VariableType varType, const std::string& variable, const std::string& expression);
+
 		// Getters
 		WordType GetWordType(std::string word);
 		std::string GetExpression(std::istringstream& iss);
