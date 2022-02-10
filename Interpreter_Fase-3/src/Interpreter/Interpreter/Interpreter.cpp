@@ -55,6 +55,7 @@ namespace Interpreter
 				// Grab everything after the keyword
 				std::string expression = GetExpression(iss);
 				ValidateKeyword(keywordType, expression);
+
 				break;
 			}
 
@@ -117,11 +118,11 @@ namespace Interpreter
 		//Variable::m_IntHolder.InsertToMap(word, expression);
 
 		// b = 2
-		m_IntHolder.InsertToMap("b", 2);
+		//m_IntHolder.InsertToMap("b", 2);
 
 		// c = a .add. b
-		int A = m_IntHolder.GetValue("a");
-		int b = m_IntHolder.GetValue("b");
+		//int A = m_IntHolder.GetValue("a");
+		//int b = m_IntHolder.GetValue("b");
 		//Variable::m_IntHolder.InsertToMap("c", a + b);
 
 		// c = a .add. b .div. 5 .sub. 2
@@ -235,9 +236,7 @@ namespace Interpreter
 		{
 			// REM this is a comment
 			case KeywordType::Comment:
-			{
 				return;
-			}
 
 			case KeywordType::If:
 			{
@@ -329,8 +328,6 @@ namespace Interpreter
 
 			case KeywordType::Read:
 			{
-				// Wait until input is entered
-
 				// Validate that expression is a variable
 
 				// Make assignment to variable
@@ -348,38 +345,38 @@ namespace Interpreter
 						{
 							if (std::isdigit((char)c))
 							{
-								LOG_ERROR("'{0}' Variable names can not have any digits!", expression);
+								LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
+								ERROR("'" + expression + "' Variable names can not have any digits!");
 								return;
 							}
 						}
 
 						if (Keyword::IsKeyword(expression))
 						{
+							LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
 							ERROR("Invalid print statement! Can't print a keyword!");
 						}
 
-						LOG_INFO("Variable <print statement> '{0}'", expression);
+						PrintVariable(expression);
 						return;
 					}
 
 					if (IsNumber(expression))
 					{
-						LOG_INFO("Number <print statement> '{0}'", expression);
+						std::cout << expression;
 						return;
 					}
 
 					if (IsString(expression))
 					{
-						LOG_INFO("String <print statement> '{0}'", expression);
+						std::cout << expression;
 						return;
 					}
-
-					//ReadWord(expression);
-
 				}
 				else
 				{
-					LOG_INFO("Newline <print statement>");
+					std::cout << '\n';
+					return;
 				}
 
 				break;
@@ -394,15 +391,13 @@ namespace Interpreter
 					return;
 				}
 
-				LOG_TRACE("<end statement>");
+				LOG_INFO("Program end");
 				break;
 			}
 
 			case KeywordType::Invalid: LOG_ERROR("Invalid Keyword Type"); break;
-
-			default:
-				LOG_ERROR("Unknown KeywordType!"); break;
-			}
+			default: LOG_ERROR("Unknown KeywordType!"); break;
+		}
 	}
 
 	void Interpreter::ValidateAssignment(VariableType varType, std::string expression)
@@ -455,15 +450,13 @@ namespace Interpreter
 				OperatorType op = Operator::GetOperator(word);
 				if (Operator::IsLogical(op))
 				{
-					// Error Example:
-					// a = 5 .and. 3
+					// Error Example: a = 5 .and. 3
 					LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
 					ERROR(std::string("Used logical operator '" + word + "' in an assignment statement!").c_str());
 				}
 				if (Operator::IsRelational(op))
 				{
-					// Error Example:
-					// a = 5 .le. 3
+					// Error Example: a = 5 .le. 3
 					LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
 					ERROR(std::string("Used relational operator '" + word + "' in an assignment statement!").c_str());
 				}
@@ -472,12 +465,21 @@ namespace Interpreter
 				iss >> word;
 				if (Operator::IsOperator(word))
 				{
-					// Error Example:
-					// a = 5 .add. .div. 5
+					// Error Example: a = 5 .add. .div. 5
 					LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
 					ERROR(std::string("Was expecting a Number or Variable but found '" + word + "'.\nDid you write two operators in a row? ").c_str());
 				}
 			}
+		}
+	}
+
+	void Interpreter::PrintVariable(const std::string& expression)
+	{
+		switch (Variable::GetVariableType(expression))
+		{
+			case VariableType::Integer: std::cout << m_IntHolder.GetValue(expression); break;
+			case VariableType::Real: std::cout << m_RealHolder.GetValue(expression); break;
+			case VariableType::String: std::cout << m_StringHolder.GetValue(expression); break;
 		}
 	}
 
@@ -487,19 +489,21 @@ namespace Interpreter
 		{
 			case VariableType::Integer:
 			{
-
+				m_IntHolder.InsertToMap(variable, m_IntValue);
+				//LOG_INFO("m_IntValue {0}", m_IntValue);
+				//LOG_INFO("m_IntHolder {0}", m_IntHolder.GetValue(variable));
 			}
 			break;
 
 			case VariableType::Real:
 			{
-
+				m_RealHolder.InsertToMap(variable, m_RealValue);
 			}
 			break;
 
 			case VariableType::String:
 			{
-
+				m_StringHolder.InsertToMap(variable, expression);
 			}
 			break;
 

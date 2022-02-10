@@ -23,18 +23,15 @@ namespace Interpreter
 	template<typename Key, typename Value>
 	void VariableHolder<typename Key, typename Value>::InsertToMap(Key key, Value value)
 	{
-		// Store user's variable and check success
-		auto inserted = m_VariableMap.insert(std::make_pair(key, value));
-
-
-		assert(inserted.second);
+		// Replace if already exists, add new entry if not
+		m_VariableMap[key] = value;
 	}
 
 	template<typename Key, typename Value>
 	inline bool VariableHolder<Key, Value>::Find(const Key& key)
 	{
-		auto x = m_VariableMap.find(key);
-		if (x != m_VariableMap.end())
+		auto itr = m_VariableMap.find(key);
+		if (itr != m_VariableMap.end())
 			return true;
 
 		return false;
@@ -49,19 +46,19 @@ namespace Interpreter
 	template<typename Key, typename Value>
 	Value& VariableHolder<typename Key, typename Value>::GetValue(Key key)
 	{
-		auto found = m_VariableMap.find(key);
-		assert(found != m_VariableMap.end());
+		auto itr = m_VariableMap.find(key);
+		assert(itr != m_VariableMap.end());
 
-		return found->second;
+		return itr->second;
 	}
 
 	template<typename Key, typename Value>
 	const Value& VariableHolder<typename Key, typename Value>::GetValue(Key key) const
 	{
-		auto found = m_VariableMap.find(key);
-		assert(found != m_VariableMap.end());
+		auto itr = m_VariableMap.find(key);
+		assert(itr != m_VariableMap.end());
 
-		return found->second;
+		return itr->second;
 	}
 
 	typedef VariableHolder<std::string, int> IntegerHolder;

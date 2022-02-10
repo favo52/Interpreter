@@ -16,15 +16,12 @@ namespace Interpreter
 
 	void Application::Run()
 	{
-		std::cout << '\n';
-		LOG_INFO("Program start");
-
-		// Main loop
+		// Main program loop
 		while (m_IsRunning) try
 		{
 			// Grab entire input
 			std::cout << '\n';
-			LOG_TRACE("Please enter the filepath to load the file. (Exit: \"--q\")");
+			LOG_TRACE("Please enter the filepath. (Exit: \"--q\")");
 			std::cout << ">";
 			std::string filepath{};
 			std::getline(std::cin, filepath);

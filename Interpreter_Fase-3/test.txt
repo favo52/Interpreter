@@ -1,7 +1,16 @@
-w = 5
-w = "Dsad
-w = "Hola"
-&%$
-.and.
-5
-"test"
+a = 5
+b = 4
+g = 7.77
+PRINT a
+PRINT
+PRINT b
+PRINT
+b = 55
+PRINT b
+PRINT
+w = "Dsad"
+PRINT w
+PRINT
+print g
+PRINT
+end.
