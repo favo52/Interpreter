@@ -1,6 +1,9 @@
 a = 5
 b = 4
-g = 7.77
+c = a .sb. b
+g = 5.5
+i = 3.3
+k = g .add. i
 PRINT a
 PRINT
 PRINT b
@@ -11,6 +14,8 @@ PRINT
 w = "Dsad"
 PRINT w
 PRINT
-print g
+print c
+print
+print k
 PRINT
 end.

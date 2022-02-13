@@ -47,6 +47,15 @@ namespace Interpreter
 		void PrintVariable(const std::string& expression);
 		void MakeAssignment(VariableType varType, const std::string& variable, const std::string& expression);
 
+		int Precedence(std::string word);
+		std::string InfixToPostfix(std::string infix);
+
+		template<typename T>
+		T Operate(OperatorType op, const T& operand1, const T& operand2);
+
+		template<typename T>
+		T EvaluatePostfix(std::string postfix);
+
 		void ClearHolders();
 		void ClearStacks();
 
@@ -74,6 +83,84 @@ namespace Interpreter
 		IntegerStack m_IntStack;
 		RealStack m_RealStack;
 
+		bool m_IsEnd;
+
 		friend class Keyword;
 	};
+
+	template<typename T>
+	inline T Interpreter::Operate(OperatorType op, const T& operand1, const T& operand2)
+	{
+		switch (op)
+		{
+			case OperatorType::Add:
+				return operand1 + operand2;
+			case OperatorType::Sub:
+				return operand1 - operand2;
+			case OperatorType::Mul:
+				return operand1 * operand2;
+			case OperatorType::Div:
+				return operand1 / operand2;
+			default:
+				break;
+		}
+	}
+
+	template<typename T>
+	inline T Interpreter::EvaluatePostfix(std::string postfix)
+	{
+		Stack<T> stack;
+		T result{};
+		std::string word{};
+		std::istringstream iss{ postfix };
+
+		while (iss >> word)
+		{
+			if (!Operator::IsOperator(word))
+			{
+				WordType wordType = GetWordType(word);
+				switch (wordType)
+				{
+					case WordType::Number:
+					{
+						if (IsInteger(word))
+							stack.Push(stoi(word));
+						else if (IsReal(word))
+							stack.Push(stod(word));
+					}
+					break;
+
+					case WordType::Variable:
+					{
+						VariableType varType = Variable::GetVariableType(word);
+						switch (varType)
+						{
+							case VariableType::Integer:
+								stack.Push(m_IntHolder.GetValue(word));
+								break;
+							case VariableType::Real:
+								stack.Push(m_RealHolder.GetValue(word));
+								break;
+						}
+					}
+					break;
+				}
+			}
+			else
+			{
+				OperatorType op = Operator::GetOperator(word);
+
+				T operand2 = stack.Peek();
+				stack.Pop();
+
+				T operand1 = stack.Peek();
+				stack.Pop();
+
+				result = Operate(op, operand1, operand2);
+				stack.Push(result);
+			}
+		}
+
+		return result;
+	}
 }
