@@ -396,6 +396,7 @@ namespace Interpreter
 				//LOG_INFO("Program end");
 
 				exit(EXIT_SUCCESS);
+				break;
 			}
 
 			case KeywordType::Invalid: LOG_ERROR("Invalid Keyword Type"); break;
