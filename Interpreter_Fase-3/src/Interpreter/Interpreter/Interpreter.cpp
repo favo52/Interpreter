@@ -384,15 +384,18 @@ namespace Interpreter
 
 			case KeywordType::End:
 			{
+				/*
 				if (!expression.empty())
 				{
 					LOG_TRACE("<end statement>");
 					LOG_ERROR("'{0}' not executed.", expression);
 					return;
 				}
+				*/
 
-				LOG_INFO("Program end");
-				break;
+				//LOG_INFO("Program end");
+
+				exit(EXIT_SUCCESS);
 			}
 
 			case KeywordType::Invalid: LOG_ERROR("Invalid Keyword Type"); break;
