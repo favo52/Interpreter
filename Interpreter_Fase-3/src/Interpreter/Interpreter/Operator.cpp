@@ -25,7 +25,7 @@ namespace Interpreter
 	bool Operator::IsOperator(std::string word)
 	{
 		if (word.front() == '.' && word.back() != '.')
-			ERROR("Operator is missing ending point!");
+			ERROR("Operator '" + word + "' is missing ending point '.'!");
 
 		// Make all characters lowercase
 		for (char& c : word)

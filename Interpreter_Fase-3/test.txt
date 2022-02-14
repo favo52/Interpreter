@@ -1,6 +1,6 @@
 a = 5
 b = 4
-c = a .sb. b
+c = a .sub. b
 g = 5.5
 i = 3.3
 k = g .add. i
@@ -11,11 +11,16 @@ PRINT
 b = 55
 PRINT b
 PRINT
-w = "Dsad"
-PRINT w
+w = "Hello"
+o = " World"
+z = w .add. o
+z = z .add. " YAY " .add. 5.5
+PRINT z
 PRINT
 print c
 print
 print k
-PRINT
+h = c .div. b .mul. 500
+print
+print h
 end.

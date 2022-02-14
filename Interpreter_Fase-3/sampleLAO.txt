@@ -7,7 +7,7 @@ print
 print
 if z .eq. "HOLA MUNDO" then print z
 cc = 0
-c2 = 9
+REM c2 = 9
 c = 4
 print
 print

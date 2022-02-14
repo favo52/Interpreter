@@ -33,10 +33,50 @@ namespace Interpreter
 		// Traverse the file line by line until the end
 		while (std::getline(m_iFileStream, m_Line) && !m_IsEnd)
 		{
+			if (!IsSyntaxValid(m_Line))
+				ERROR(GetLastError());
+
 			InterpretLine(m_Line);
 			m_IsOperatorFound = false;
 			m_LineNumber++;
 		}
+	}
+
+	bool Interpreter::IsSyntaxValid(const std::string& line)
+	{
+		std::istringstream iss{ line };
+		std::string word{};
+		while (iss >> word)
+		{
+			WordType wordType{};
+			if (word.front() == '"')
+			{
+				m_StringValue = word;
+				while (m_StringValue.back() != '"' || m_StringValue.size() < 2)
+				{
+					iss >> word;
+					m_StringValue += ' ' + word;
+				}
+				wordType = GetWordType(m_StringValue);
+			}
+			else
+				wordType = GetWordType(word);
+
+			if (wordType == WordType::Keyword)
+			{
+				KeywordType keywordType = Keyword::GetKeyword(word);
+				if (keywordType == KeywordType::Comment)
+					return true;
+			}
+
+			if (wordType == WordType::Invalid && word != "=")
+			{
+				m_ErrorWord = word;
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	void Interpreter::InterpretLine(const std::string& line)
@@ -45,7 +85,20 @@ namespace Interpreter
 		std::string word{};
 		iss >> word;
 
-		WordType wordType = GetWordType(word);
+		WordType wordType{};
+		if (word.front() == '"')
+		{
+			m_StringValue = word;
+			while (m_StringValue.back() != '"' || m_StringValue.size() < 2)
+			{
+				iss >> word;
+				m_StringValue += ' ' + word;
+			}
+			wordType = GetWordType(m_StringValue);
+		}
+		else
+			wordType = GetWordType(word);
+
 		switch (wordType)
 		{
 			case WordType::Keyword:
@@ -70,10 +123,7 @@ namespace Interpreter
 				// Make sure the assignment '=' is next in the line
 				iss >> word;
 				if (word != "=")
-				{
-					LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
 					ERROR("Did you forget the assignment '=' for the variable?");
-				}
 
 				// Grab the expression after the '='
 				std::string expression = GetExpression(iss);
@@ -87,54 +137,22 @@ namespace Interpreter
 			}
 
 			case WordType::Operator:
-				LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
 				ERROR("'" + word + "' An <operator> is not a valid instruction!");
 				break;
 
 			case WordType::Number:
-				LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
 				ERROR("'" + word + "' A <number> is not a valid instruction!");
 				break;
 
 			case WordType::String:
-				LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
 				ERROR("'" + word + "' A <string> is not a valid instruction!");
 				break;
 
 			case WordType::Invalid:
 			default:
-				LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
 				ERROR("'" + word + "' is not supported!");
 				break;
-		}
-
-		// GOAL:
-		/*
-		a = 2
-		b = 2
-		c = a .add. b
-		*/
-
-		// a = 2
-		//Variable::m_IntHolder.InsertToMap(word, expression);
-
-		// b = 2
-		//m_IntHolder.InsertToMap("b", 2);
-
-		// c = a .add. b
-		//int A = m_IntHolder.GetValue("a");
-		//int b = m_IntHolder.GetValue("b");
-		//Variable::m_IntHolder.InsertToMap("c", a + b);
-
-		// c = a .add. b .div. 5 .sub. 2
-		//Variable::m_IntHolder.InsertToMap("c", a + b / 5 - 2);
-
-		// a + b / 5 - 2
-		//.add. +
-		//std::string infixExpr = { a };
-		//std::string postfixExptr = infixToPostfix(infixExpr);
-
-		//evaluate_postfix(stack, postfixExptr);
+		}		
 	}
 
 	void Interpreter::Reset()
@@ -142,9 +160,11 @@ namespace Interpreter
 		m_iFileStream.clear();
 		m_Line.clear();
 		m_LineNumber = 1;
+		m_ErrorWord.clear();
 
 		m_IntValue = 0;
 		m_RealValue = 0.0;
+		m_StringValue.clear();
 		m_IsExponential = false;
 		m_IsOperatorFound = false;
 
@@ -175,10 +195,7 @@ namespace Interpreter
 		if (word.front() == '\"')
 		{
 			if (word.back() != '\"' || word.size() < 2)
-			{
-				LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
 				ERROR("String is missing ending quotation marks!");
-			}
 
 			return true;
 		}
@@ -244,8 +261,6 @@ namespace Interpreter
 
 			case KeywordType::If:
 			{
-				LOG_INFO("<if statement> '{0}'", expression);
-
 				std::string tempStr{ expression };
 				for (char& c : tempStr) c = std::tolower(c);
 				size_t found = tempStr.find("then");
@@ -266,7 +281,7 @@ namespace Interpreter
 					}
 					conditionalExpression.pop_back(); // Pop the last whitespace
 
-					LOG_TRACE("Conditional expression: '{0}'", conditionalExpression);
+					//LOG_TRACE("Conditional expression: '{0}'", conditionalExpression);
 
 					// Guard against double operators
 					std::istringstream cond{ conditionalExpression };
@@ -293,7 +308,7 @@ namespace Interpreter
 
 			case KeywordType::Then:
 			{
-				LOG_TRACE("then statement: '{0}'", expression);
+				//LOG_TRACE("then statement: '{0}'", expression);
 
 				std::istringstream iss{ expression };
 				std::string firstWord{};
@@ -324,7 +339,9 @@ namespace Interpreter
 					// Grab the expression after the '='
 					std::string expr = GetExpression(iss);
 
-					ValidateAssignment(Variable::GetVariableType(firstWord), expr);
+					VariableType varType = Variable::GetVariableType(firstWord);
+					ValidateAssignment(varType, expr);
+					MakeAssignment(varType, firstWord, expr);
 				}
 
 				break;
@@ -333,8 +350,19 @@ namespace Interpreter
 			case KeywordType::Read:
 			{
 				// Validate that expression is a variable
+				if (Variable::IsVariable(expression))
+				{
+					VariableType varType = Variable::GetVariableType(expression);
+					std::string variableStr = expression;
+					
+					std::string readValue{};
+					std::cin >> readValue;
 
-				// Make assignment to variable
+					ValidateAssignment(varType, readValue);
+					MakeAssignment(varType, variableStr, readValue);
+				}
+				else
+					ERROR("'" + expression + "' is not a valid assignment!");
 
 				break;
 			}
@@ -349,17 +377,13 @@ namespace Interpreter
 						{
 							if (std::isdigit((char)c))
 							{
-								LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
 								ERROR("'" + expression + "' Variable names can not have any digits!");
 								return;
 							}
 						}
 
 						if (Keyword::IsKeyword(expression))
-						{
-							LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
 							ERROR("Invalid print statement! Can't print a keyword!");
-						}
 
 						PrintVariable(expression);
 						return;
@@ -373,7 +397,9 @@ namespace Interpreter
 
 					if (IsString(expression))
 					{
-						std::cout << expression;
+						std::string str{ expression };
+						str.erase(std::remove(str.begin(), str.end(), '"'), str.end());
+						std::cout << str;
 						return;
 					}
 				}
@@ -390,6 +416,7 @@ namespace Interpreter
 			{
 				m_IsEnd = true;
 
+				std::cout << '\n';
 				LOG_INFO("Program end");
 				break;
 			}
@@ -414,10 +441,8 @@ namespace Interpreter
 					break;
 
 				if (!IsInteger(word) || IsReal(word))
-				{
-					LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
 					ERROR("Invalid assignment to <integer> variable.");
-				}
+
 				break;
 			}
 
@@ -427,10 +452,8 @@ namespace Interpreter
 					break;
 
 				if (!IsReal(word) || IsInteger(word))
-				{
-					LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
 					ERROR("Invalid assignment to <real> variable.");
-				}
+
 				break;
 			}
 
@@ -438,12 +461,10 @@ namespace Interpreter
 			{
 				if (Variable::IsVariable(word))
 					break;
-
+				
 				if (!IsString(expression))
-				{
-					LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
 					ERROR("Invalid assignment to <string> variable.");
-				}
+
 				break;
 			}
 		}
@@ -459,26 +480,15 @@ namespace Interpreter
 
 				OperatorType op = Operator::GetOperator(word);
 				if (Operator::IsLogical(op))
-				{
-					// Error Example: a = 5 .and. 3
-					LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
 					ERROR(std::string("Used logical operator '" + word + "' in an assignment statement!").c_str());
-				}
+
 				if (Operator::IsRelational(op))
-				{
-				// Error Example: a = 5 .le. 3
-				LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
-				ERROR(std::string("Used relational operator '" + word + "' in an assignment statement!").c_str());
-				}
+					ERROR(std::string("Used relational operator '" + word + "' in an assignment statement!").c_str());
 
 				// Grab next word
 				iss >> word;
 				if (Operator::IsOperator(word))
-				{
-					// Error Example: a = 5 .add. .div. 5
-					LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
 					ERROR(std::string("Was expecting a Number or Variable but found '" + word + "'.\nDid you write two operators in a row? ").c_str());
-				}
 			}
 		}
 	}
@@ -487,9 +497,26 @@ namespace Interpreter
 	{
 		switch (Variable::GetVariableType(expression))
 		{
-			case VariableType::Integer: std::cout << m_IntHolder.GetValue(expression); break;
-			case VariableType::Real: std::cout << m_RealHolder.GetValue(expression); break;
-			case VariableType::String: std::cout << m_StringHolder.GetValue(expression); break;
+			case VariableType::Integer:
+				if (m_IntHolder.Find(expression))
+					std::cout << m_IntHolder.GetValue(expression);
+				else
+					ERROR("'" + expression + "' is not defined!");
+				break;
+
+			case VariableType::Real:
+				if (m_RealHolder.Find(expression))
+					std::cout << m_RealHolder.GetValue(expression);
+				else
+					ERROR("'" + expression + "' is not defined!");
+				break;
+
+			case VariableType::String:
+				if (m_StringHolder.Find(expression))
+					std::cout << m_StringHolder.GetValue(expression);
+				else
+					ERROR("'" + expression + "' is not defined!");
+				break;
 		}
 	}
 
@@ -497,56 +524,59 @@ namespace Interpreter
 	{
 		switch (varType)
 		{
-		case VariableType::Integer:
-		{
-			if (m_IsOperatorFound)
+			case VariableType::Integer:
 			{
-				std::string postFix = InfixToPostfix(expression);
-				int intValue = EvaluatePostfix<int>(postFix);
-				m_IntHolder.InsertToMap(variable, intValue);
+				if (m_IsOperatorFound)
+				{
+					std::string postFix = InfixToPostfix(expression);
+					int intValue = EvaluatePostfix<int>(postFix);
+					m_IntHolder.InsertToMap(variable, intValue);
+				}
+				else
+				{
+					int intValue = stoi(expression);
+					m_IntHolder.InsertToMap(variable, intValue);
+				}
 			}
-			else
-			{
-				int intValue = stoi(expression);
-				m_IntHolder.InsertToMap(variable, intValue);
-			}
-		}
-		break;
-
-		case VariableType::Real:
-		{
-			if (m_IsOperatorFound)
-			{
-				std::string postFix = InfixToPostfix(expression);
-				double realValue = EvaluatePostfix<double>(postFix);
-				m_RealHolder.InsertToMap(variable, realValue);
-			}
-			else
-			{
-				double realValue = stod(expression);
-				m_RealHolder.InsertToMap(variable, realValue);
-			}
-		}
-		break;
-
-		case VariableType::String:
-		{
-			if (m_IsOperatorFound)
-			{
-
-			}
-			else
-			{
-				m_StringHolder.InsertToMap(variable, expression);
-			}
-		}
-		break;
-
-		case VariableType::Invalid:
-		default:
-			LOG_ERROR("Line {0}: {1}", m_LineNumber, m_Line);
-			ERROR("Cannot assign " + expression + " to " + variable + "!");
 			break;
+
+			case VariableType::Real:
+			{
+				if (m_IsOperatorFound)
+				{
+					std::string postFix = InfixToPostfix(expression);
+					double realValue = EvaluatePostfix<double>(postFix);
+					m_RealHolder.InsertToMap(variable, realValue);
+				}
+				else
+				{
+					double realValue = stod(expression);
+					m_RealHolder.InsertToMap(variable, realValue);
+				}
+			}
+			break;
+
+			case VariableType::String:
+			{
+				if (m_IsOperatorFound)
+				{
+					std::string stringResult = Concatenate(expression);
+					stringResult.erase(std::remove(stringResult.begin(), stringResult.end(), '"'), stringResult.end());
+					m_StringHolder.InsertToMap(variable, stringResult);
+				}
+				else
+				{
+					std::string str{ expression };
+					str.erase(std::remove(str.begin(), str.end(), '"'), str.end());
+					m_StringHolder.InsertToMap(variable, str);
+				}
+			}
+			break;
+
+			case VariableType::Invalid:
+			default:
+				ERROR("Cannot assign " + expression + " to " + variable + "!");
+				break;
 		}
 	}
 
@@ -617,6 +647,99 @@ namespace Interpreter
 		return result;
 	}
 
+	std::string Interpreter::EvaluateStringPostfix(std::string postfix)
+	{
+		Stack<std::string> stack;
+		std::string result{};
+		std::string word{};
+		std::istringstream iss{ postfix };
+
+		std::string stringValue{};
+		while (iss >> word)
+		{
+			WordType wordType{};
+
+			if (word.front() == '"')
+			{
+				stringValue = word;
+				while (stringValue.back() != '"' || stringValue.size() < 2)
+				{
+					iss >> word;
+					stringValue += ' ' + word;
+				}
+				wordType = GetWordType(stringValue);
+			}
+			else
+				wordType = GetWordType(word);
+
+			if (!Operator::IsOperator(word))
+			{
+				switch (wordType)
+				{
+					case WordType::String:
+						stack.Push(stringValue);
+						break;
+
+					case WordType::Number:
+						stack.Push(word);
+						break;
+
+					case WordType::Variable:
+					{
+						VariableType varType = Variable::GetVariableType(word);
+						switch (varType)
+						{
+							case VariableType::Integer:
+								if (m_IntHolder.Find(word))
+									stack.Push(std::to_string(m_IntHolder.GetValue(word)));
+								else
+									ERROR("'" + word + "' is not defined!");
+								break;
+
+							case VariableType::Real:
+								if (m_RealHolder.Find(word))
+									stack.Push(std::to_string(m_RealHolder.GetValue(word)));
+								else
+									ERROR("'" + word + "' is not defined!");
+								break;
+
+							case VariableType::String:
+								if (m_StringHolder.Find(word))
+									stack.Push(m_StringHolder.GetValue(word));
+								else
+									ERROR("'" + word + "' is not defined!");
+								break;
+						}
+					}
+					break;
+				}
+			}
+			else
+			{
+				std::string operand2 = stack.Peek();
+				stack.Pop();
+
+				std::string operand1 = stack.Peek();
+				stack.Pop();
+
+				result = operand1 + operand2;
+				stack.Push(result);
+			}
+		}
+
+		return result;
+	}
+
+	std::string Interpreter::Concatenate(std::string expression)
+	{		
+		std::string result{};
+		
+		std::string postfix = InfixToPostfix(expression);
+		result = EvaluateStringPostfix(postfix);
+
+		return result;
+	}
+
 	void Interpreter::ClearHolders()
 	{
 		m_IntHolder.Clear();
@@ -632,6 +755,7 @@ namespace Interpreter
 
 	WordType Interpreter::GetWordType(std::string word)
 	{
+		if (word == "=") return WordType::Invalid;
 		if (Keyword::IsKeyword(word)) return WordType::Keyword;
 		if (Variable::IsVariable(word)) return WordType::Variable;
 		if (IsNumber(word)) return WordType::Number;
@@ -649,5 +773,13 @@ namespace Interpreter
 			expression.erase(expression.begin()); // erase front whitespace
 
 		return expression;
+	}
+
+	std::string Interpreter::GetLastError()
+	{
+		if (m_ErrorWord.front() == '.' && m_ErrorWord.back() == '.')
+			return "'" + m_ErrorWord + "' is an invalid operator! Valid operators are: .add. .sub. .mul. .div. .or. .and. .not. .eq. .ne. .lt. .le. .gt. .ge.";
+
+		return m_ErrorWord;
 	}
 }

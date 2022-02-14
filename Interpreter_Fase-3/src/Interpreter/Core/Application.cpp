@@ -38,9 +38,11 @@ namespace Interpreter
 			std::cout << '\n';
 			LOG_WARN("Restarting...");
 			m_Interpreter.Reset();
+			ClearInput();
 		}
 		catch (std::exception& e)
 		{
+			LOG_ERROR("Line {0}: {1}", m_Interpreter.GetLineNumber(), m_Interpreter.GetLine());
 			LOG_ERROR("ERROR: {0}", e.what());
 			m_Interpreter.CloseFile();
 			m_Interpreter.Reset();

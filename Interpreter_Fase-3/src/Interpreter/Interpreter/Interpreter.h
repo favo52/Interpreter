@@ -28,7 +28,11 @@ namespace Interpreter
 
 		void Reset();
 
+		const std::string& GetLine() const { return m_Line; }
+		int GetLineNumber() const { return m_LineNumber; }
+
 	private:
+		bool IsSyntaxValid(const std::string& line);
 		void InterpretLine(const std::string& line);
 
 		// Word Types
@@ -56,20 +60,26 @@ namespace Interpreter
 		template<typename T>
 		T EvaluatePostfix(std::string postfix);
 
+		std::string EvaluateStringPostfix(std::string postfix);
+		std::string Concatenate(std::string expression);
+
 		void ClearHolders();
 		void ClearStacks();
 
 		// Getters
 		WordType GetWordType(std::string word);
 		std::string GetExpression(std::istringstream& iss);
+		std::string GetLastError();
 
 	private:
 		std::ifstream m_iFileStream;
 		std::string m_Line;
 		int m_LineNumber;
+		std::string m_ErrorWord;
 
 		int m_IntValue;
 		double m_RealValue;
+		std::string m_StringValue;
 		bool m_IsExponential;
 
 		bool m_IsOperatorFound;
@@ -136,10 +146,17 @@ namespace Interpreter
 						switch (varType)
 						{
 							case VariableType::Integer:
-								stack.Push(m_IntHolder.GetValue(word));
+								if (m_IntHolder.Find(word))
+									stack.Push(m_IntHolder.GetValue(word));
+								else
+									ERROR("'" + word + "' is not defined!");
 								break;
+
 							case VariableType::Real:
-								stack.Push(m_RealHolder.GetValue(word));
+								if (m_RealHolder.Find(word))
+									stack.Push(m_RealHolder.GetValue(word));
+								else
+									ERROR("'" + word + "' is not defined!");
 								break;
 						}
 					}
