@@ -40,6 +40,9 @@ namespace Interpreter
 			m_IsOperatorFound = false;
 			m_LineNumber++;
 		}
+
+		if (!m_IsEnd)
+			ERROR("<end> statement not found!");
 	}
 
 	bool Interpreter::IsSyntaxValid(const std::string& line)
@@ -558,7 +561,7 @@ namespace Interpreter
 				else
 				{
 					for (const char& ch : expression)
-						if (!isdigit(ch))
+						if (!isdigit(ch) && ch != '-')
 							ERROR("'" + expression + "' is not a valid integer number!");
 
 					int intValue = stoi(expression);
@@ -578,7 +581,7 @@ namespace Interpreter
 				else
 				{
 					for (const char& ch : expression)
-						if (!isdigit(ch) && ch != '.')
+						if (!isdigit(ch) && ch != '.' && ch != '-')
 							ERROR("'" + expression + "' is not a valid real number!");
 
 					double realValue = stod(expression);
