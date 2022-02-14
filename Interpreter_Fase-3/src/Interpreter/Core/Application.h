@@ -15,7 +15,7 @@ namespace Interpreter
 		void Quit() { m_IsRunning = false; }
 
 		void Error(const std::string& s) { throw std::runtime_error(s); }
-		void ClearInput() { std::cin.clear(); }
+		void ClearInput() { std::cin.clear(); std::cin.ignore(); }
 
 		static Application& Get() { return *s_Instance; }
 

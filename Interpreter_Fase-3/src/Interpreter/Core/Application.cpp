@@ -42,6 +42,7 @@ namespace Interpreter
 		}
 		catch (std::exception& e)
 		{
+			std::cout << '\n';
 			LOG_ERROR("Line {0}: {1}", m_Interpreter.GetLineNumber(), m_Interpreter.GetLine());
 			LOG_ERROR("ERROR: {0}", e.what());
 			m_Interpreter.CloseFile();

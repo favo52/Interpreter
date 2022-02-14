@@ -281,7 +281,6 @@ namespace Interpreter
 					}
 					conditionalExpression.pop_back(); // Pop the last whitespace
 
-					//LOG_TRACE("Conditional expression: '{0}'", conditionalExpression);
 
 					// Guard against double operators
 					std::istringstream cond{ conditionalExpression };
@@ -295,12 +294,38 @@ namespace Interpreter
 						}
 					}
 
-					std::string thenStatement{};
-					for (std::string tempWord; iss >> tempWord;)
-						thenStatement += tempWord + ' ';
-					thenStatement.pop_back();
+					//LOG_INFO("Conditional expression: '{0}'", conditionalExpression);
+					std::string postfix = InfixToPostfix(conditionalExpression);
+					//LOG_INFO("postfix: {0}", postfix);
 
-					ValidateKeyword(KeywordType::Then, thenStatement);
+					bool IsConditionTrue{ false };
+					std::istringstream condIss{ conditionalExpression };
+					std::string condStr{};
+					condIss >> condStr;
+
+					VariableType condVarType = Variable::GetVariableType(condStr);
+					switch (condVarType)
+					{
+						case VariableType::Integer:
+							IsConditionTrue = EvaluateOperatorPostfix<int>(postfix);
+							break;
+						case VariableType::Real:
+							IsConditionTrue = EvaluateOperatorPostfix<double>(postfix);
+							break;
+						case VariableType::String:
+							IsConditionTrue = EvaluateStringOperatorPostfix(postfix);
+							break;
+					}
+
+					if (IsConditionTrue)
+					{
+						std::string thenStatement{};
+						for (std::string tempWord; iss >> tempWord;)
+							thenStatement += tempWord + ' ';
+						thenStatement.pop_back();
+
+						ValidateKeyword(KeywordType::Then, thenStatement);
+					}
 				}
 
 				break;
@@ -308,8 +333,6 @@ namespace Interpreter
 
 			case KeywordType::Then:
 			{
-				//LOG_TRACE("then statement: '{0}'", expression);
-
 				std::istringstream iss{ expression };
 				std::string firstWord{};
 				iss >> firstWord;
@@ -506,7 +529,7 @@ namespace Interpreter
 
 			case VariableType::Real:
 				if (m_RealHolder.Find(expression))
-					std::cout << m_RealHolder.GetValue(expression);
+					std::cout << std::fixed << m_RealHolder.GetValue(expression);
 				else
 					ERROR("'" + expression + "' is not defined!");
 				break;
@@ -529,11 +552,15 @@ namespace Interpreter
 				if (m_IsOperatorFound)
 				{
 					std::string postFix = InfixToPostfix(expression);
-					int intValue = EvaluatePostfix<int>(postFix);
+					int intValue = EvaluateArithmeticPostfix<int>(postFix);
 					m_IntHolder.InsertToMap(variable, intValue);
 				}
 				else
 				{
+					for (const char& ch : expression)
+						if (!isdigit(ch))
+							ERROR("'" + expression + "' is not a valid integer number!");
+
 					int intValue = stoi(expression);
 					m_IntHolder.InsertToMap(variable, intValue);
 				}
@@ -545,11 +572,15 @@ namespace Interpreter
 				if (m_IsOperatorFound)
 				{
 					std::string postFix = InfixToPostfix(expression);
-					double realValue = EvaluatePostfix<double>(postFix);
+					double realValue = EvaluateArithmeticPostfix<double>(postFix);
 					m_RealHolder.InsertToMap(variable, realValue);
 				}
 				else
 				{
+					for (const char& ch : expression)
+						if (!isdigit(ch) && ch != '.')
+							ERROR("'" + expression + "' is not a valid real number!");
+
 					double realValue = stod(expression);
 					m_RealHolder.InsertToMap(variable, realValue);
 				}
@@ -647,6 +678,27 @@ namespace Interpreter
 		return result;
 	}
 
+	bool Interpreter::OperateRelational(OperatorType op, const std::string& operand1, const std::string& operand2)
+	{
+		switch (op)
+		{
+			case OperatorType::Eq:
+				return operand1 == operand2;
+			case OperatorType::Ne:
+				return operand1 != operand2;
+			case OperatorType::Lt:
+				return operand1 < operand2;
+			case OperatorType::Le:
+				return operand1 <= operand2;
+			case OperatorType::Gt:
+				return operand1 > operand2;
+			case OperatorType::Ge:
+				return operand1 >= operand2;
+		}
+
+		return false;
+	}
+
 	std::string Interpreter::EvaluateStringPostfix(std::string postfix)
 	{
 		Stack<std::string> stack;
@@ -730,6 +782,95 @@ namespace Interpreter
 		return result;
 	}
 
+	bool Interpreter::EvaluateStringOperatorPostfix(std::string postfix)
+	{
+		Stack<std::string> stack;
+		bool result{ false };
+		std::string word{};
+		std::istringstream iss{ postfix };
+
+		std::string stringValue{};
+		while (iss >> word)
+		{
+			WordType wordType{};
+
+			if (word.front() == '"')
+			{
+				stringValue = word;
+				while (stringValue.back() != '"' || stringValue.size() < 2)
+				{
+					iss >> word;
+					stringValue += ' ' + word;
+				}
+				wordType = GetWordType(stringValue);
+			}
+			else
+				wordType = GetWordType(word);
+
+			if (!Operator::IsOperator(word))
+			{
+				switch (wordType)
+				{
+					case WordType::String:
+					{
+						std::string str{ stringValue };
+						str.erase(std::remove(str.begin(), str.end(), '"'), str.end());
+						stack.Push(str);
+						break;
+					}
+
+					case WordType::Number:
+						stack.Push(word);
+						break;
+
+					case WordType::Variable:
+					{
+						VariableType varType = Variable::GetVariableType(word);
+						switch (varType)
+						{
+							case VariableType::Integer:
+								if (m_IntHolder.Find(word))
+									stack.Push(std::to_string(m_IntHolder.GetValue(word)));
+								else
+									ERROR("'" + word + "' is not defined!");
+								break;
+
+							case VariableType::Real:
+								if (m_RealHolder.Find(word))
+									stack.Push(std::to_string(m_RealHolder.GetValue(word)));
+								else
+									ERROR("'" + word + "' is not defined!");
+								break;
+
+							case VariableType::String:
+								if (m_StringHolder.Find(word))
+									stack.Push(m_StringHolder.GetValue(word));
+								else
+									ERROR("'" + word + "' is not defined!");
+								break;
+						}
+					}
+					break;
+				}
+			}
+			else
+			{
+				OperatorType op = Operator::GetOperator(word);
+
+				std::string operand2 = stack.Peek();
+				stack.Pop();
+
+				std::string operand1 = stack.Peek();
+				stack.Pop();
+
+				result = OperateRelational(op, operand1, operand2);
+				stack.Push(std::to_string(result));
+			}
+		}
+
+		return result;
+	}
+
 	std::string Interpreter::Concatenate(std::string expression)
 	{		
 		std::string result{};
@@ -779,6 +920,10 @@ namespace Interpreter
 	{
 		if (m_ErrorWord.front() == '.' && m_ErrorWord.back() == '.')
 			return "'" + m_ErrorWord + "' is an invalid operator! Valid operators are: .add. .sub. .mul. .div. .or. .and. .not. .eq. .ne. .lt. .le. .gt. .ge.";
+
+		for (const char& ch : m_ErrorWord)
+			if (isdigit(ch))
+				return "'" + m_ErrorWord + "' is not a valid variable! Variables can only be letters a-z or A-Z.";
 
 		return m_ErrorWord;
 	}

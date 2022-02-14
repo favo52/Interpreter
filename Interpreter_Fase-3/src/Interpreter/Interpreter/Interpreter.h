@@ -55,12 +55,20 @@ namespace Interpreter
 		std::string InfixToPostfix(std::string infix);
 
 		template<typename T>
-		T Operate(OperatorType op, const T& operand1, const T& operand2);
+		T OperateArithmetic(OperatorType op, const T& operand1, const T& operand2);
 
 		template<typename T>
-		T EvaluatePostfix(std::string postfix);
+		bool OperateLogicalAndRelational(OperatorType op, const T& operand1, const T& operand2);
 
+		template<typename T>
+		T EvaluateArithmeticPostfix(std::string postfix);
+
+		template<typename T>
+		bool EvaluateOperatorPostfix(std::string postfix);
+
+		bool OperateRelational(OperatorType op, const std::string& operand1, const std::string& operand2);
 		std::string EvaluateStringPostfix(std::string postfix);
+		bool EvaluateStringOperatorPostfix(std::string postfix);
 		std::string Concatenate(std::string expression);
 
 		void ClearHolders();
@@ -99,7 +107,7 @@ namespace Interpreter
 	};
 
 	template<typename T>
-	inline T Interpreter::Operate(OperatorType op, const T& operand1, const T& operand2)
+	inline T Interpreter::OperateArithmetic(OperatorType op, const T& operand1, const T& operand2)
 	{
 		switch (op)
 		{
@@ -117,7 +125,34 @@ namespace Interpreter
 	}
 
 	template<typename T>
-	inline T Interpreter::EvaluatePostfix(std::string postfix)
+	inline bool Interpreter::OperateLogicalAndRelational(OperatorType op, const T& operand1, const T& operand2)
+	{
+		switch (op)
+		{
+			case OperatorType::And:
+				return operand1 && operand2;
+			case OperatorType::Or:
+				return operand1 || operand2;
+			case OperatorType::Not:
+				return !operand1;
+
+			case OperatorType::Eq:
+				return operand1 == operand2;
+			case OperatorType::Ne:
+				return operand1 != operand2;
+			case OperatorType::Lt:
+				return operand1 < operand2;
+			case OperatorType::Le:
+				return operand1 <= operand2;
+			case OperatorType::Gt:
+				return operand1 > operand2;
+			case OperatorType::Ge:
+				return operand1 >= operand2;
+		}
+	}
+
+	template<typename T>
+	inline T Interpreter::EvaluateArithmeticPostfix(std::string postfix)
 	{
 		Stack<T> stack;
 		T result{};
@@ -173,7 +208,72 @@ namespace Interpreter
 				T operand1 = stack.Peek();
 				stack.Pop();
 
-				result = Operate(op, operand1, operand2);
+				result = OperateArithmetic(op, operand1, operand2);
+				stack.Push(result);
+			}
+		}
+
+		return result;
+	}
+
+	template<typename T>
+	inline bool Interpreter::Interpreter::EvaluateOperatorPostfix(std::string postfix)
+	{
+		Stack<T> stack;
+		bool result{ false };
+		std::string word{};
+		std::istringstream iss{ postfix };
+
+		while (iss >> word)
+		{
+			if (!Operator::IsOperator(word))
+			{
+				WordType wordType = GetWordType(word);
+				switch (wordType)
+				{
+					case WordType::Number:
+					{
+						if (IsInteger(word))
+							stack.Push(stoi(word));
+						else if (IsReal(word))
+							stack.Push(stod(word));
+					}
+					break;
+
+					case WordType::Variable:
+					{
+						VariableType varType = Variable::GetVariableType(word);
+						switch (varType)
+						{
+							case VariableType::Integer:
+								if (m_IntHolder.Find(word))
+									stack.Push(m_IntHolder.GetValue(word));
+								else
+									ERROR("'" + word + "' is not defined!");
+								break;
+
+							case VariableType::Real:
+								if (m_RealHolder.Find(word))
+									stack.Push(m_RealHolder.GetValue(word));
+								else
+									ERROR("'" + word + "' is not defined!");
+								break;
+						}
+					}
+					break;
+				}
+			}
+			else
+			{
+				OperatorType op = Operator::GetOperator(word);
+
+				T operand2 = stack.Peek();
+				stack.Pop();
+
+				T operand1 = stack.Peek();
+				stack.Pop();
+
+				result = OperateLogicalAndRelational(op, operand1, operand2);
 				stack.Push(result);
 			}
 		}
